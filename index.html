@@ -409,6 +409,42 @@ const PROJECTS = [
     catalog: false
   },
   {
+    id: "nacimiento-trasladado",
+    title: { es: "Nacimiento trasladado", en: "Relocated source" },
+    kind: { es: "Fragmento del nacimiento del Guadalhorce. Observación", en: "Fragment of the source of the Guadalhorce. Observation" },
+    where: "Estudio, Málaga",
+    year: "2026",
+    cover: "nacimiento-rincon",
+    ficha: {
+      es: ["2026. Proceso de observación, sin forma expositiva.", "Muestra recogida el 16/05/2026 en la Fuente de los Cien Caños (Villanueva del Trabuco, Málaga).", "Contiene: <i>Epilobium</i> sp., algas filamentosas, cladóceros y un pothos añadido después.", "Estudio, Málaga."],
+      en: ["2026. Observation process, with no exhibition form.", "Sample collected on 16/05/2026 at the Fuente de los Cien Caños (Villanueva del Trabuco, Málaga).", "Contains: <i>Epilobium</i> sp., filamentous algae, cladocerans and a pothos added later.", "Studio, Málaga."]
+    },
+    quote: null,
+    text: {
+      es: ["La tradición sitúa el nacimiento del Guadalhorce en la Fuente de los Cien Caños. La hidrogeología lo sitúa un poco más arriba, en el puerto de los Alazores. Dos nacimientos para un mismo río. Uno se cuenta. El otro se mide.",
+           "El 16 de mayo de 2026 me llevé un tercero. Una muestra mínima: alga filamentosa de un poco más abajo, un par de epilobios, arena y piedras del camino, un poco de agua. El resto del agua la puse yo. Después aparecieron los cladóceros.",
+           "Ahora vive en mi estudio. Cambió la luz. Cambió el agua. Cambió todo. Y las especies se adaptaron. Sin otras plantas que les quiten el sol, ya no crecen hacia arriba. Crecen a lo plano.",
+           "Un nacimiento trasladado. Un nacimiento parado. Sigue vivo y ya es otra cosa.",
+           "La pecera convierte el proceso en espécimen. Lo deja a la vista y, al mismo tiempo, enfría la relación.",
+           "Lo guardo como un lugar para pensar."],
+      en: ["Tradition places the source of the Guadalhorce at the Fuente de los Cien Caños. Hydrogeology places it a little higher up, at the Alazores pass. Two sources for one river. One is told. The other is measured.",
+           "On 16 May 2026 I took a third one with me. A minimal sample: filamentous alga from a little further down, a couple of willowherbs, sand and stones from the path, a little water. The rest of the water I added myself. Then the cladocerans appeared.",
+           "Now it lives in my studio. The light changed. The water changed. Everything changed. And the species adapted. With no other plants taking their sun, they no longer grow upwards. They grow flat.",
+           "A relocated source. A stilled source. It is still alive and it is already something else.",
+           "The tank turns the process into a specimen. It puts it on view and, at the same time, cools the relationship.",
+           "I keep it as a place to think."]
+    },
+    images: [
+      ["nacimiento-rincon", { es: "El rincón del estudio donde vive la muestra. Málaga, 2026.", en: "The corner of the studio where the sample lives. Málaga, 2026." }],
+      ["nacimiento-frontal", { es: "Vista frontal, con la etiqueta: «Nacimiento del Guadalhorce (100 caños) 16/05/26».", en: "Front view, with the label: “Source of the Guadalhorce (100 caños) 16/05/26”." }],
+      ["nacimiento-cenital", { es: "Vista cenital. Las plantas crecen a lo plano.", en: "Top view. The plants grow flat." }],
+      ["nacimiento-epilobio", { es: "Detalle de <i>Epilobium</i> sp.", en: "Detail of <i>Epilobium</i> sp." }],
+      ["nacimiento-lateral", null],
+      ["nacimiento-dispositivo", { es: "Depósito y bomba que mueven el agua.", en: "Reservoir and pump that move the water." }]
+    ],
+    catalog: false
+  },
+  {
     id: "en-desarrollo-axarquia",
     title: { es: "Proyecto en desarrollo", en: "Work in progress" },
     kind: { es: "Riego por barro poroso. Ensayos cerámicos", en: "Porous clay irrigation. Ceramic trials" },
@@ -465,7 +501,7 @@ const PROJECTS = [
   const ORDER = [
     ["fricciones-galvanicas", "obra", "l"], ["humedad-luego-cristaliza", "obra", "m right"], ["agua-por-favor", "obra", "l"],
     ["rigor-plastic-humusidades", "obra", "s"], ["styrum", "obra", "m right"],
-    ["guadalmedina", "linea", "l"], ["en-desarrollo-axarquia", "linea", "m right"], ["t-ejido", "linea", "s"]
+    ["guadalmedina", "linea", "l"], ["nacimiento-trasladado", "linea", "m"], ["en-desarrollo-axarquia", "linea", "m right"], ["t-ejido", "linea", "s"]
   ];
   const byId = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
   PROJECTS.length = 0;
