@@ -950,7 +950,7 @@ addEventListener("hashchange", route);
   const ctx = cv.getContext("2d");
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const C = innerWidth < 760 ? 3 : 4;          // px por celda
-  let GW = 0, GH = 0, m, wt, g, por, spk, mot, vet, fl, sa, lw, img, T = 0, drips = [], dryClock = 0, firstWet = -1, bugs = [], spawnAcc = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, raf = 0, slow = 0, last = 0;
+  let GW = 0, GH = 0, m, wt, g, por, spk, mot, vet, fl, sa, lw, txt = new Uint8Array(0), img, T = 0, drips = [], dryClock = 0, firstWet = -1, bugs = [], spawnAcc = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, raf = 0, slow = 0, last = 0;
   const MOLD_T = 60, MOLD_GROW = 75, DRY_AFTER = 120;   // a los 2 minutos sin agua, empieza a secarse           // segundos: cuándo empieza el moho y cuánto tarda en salir del todo
   // ruido determinista por celda
   function h(x, y, s) { let n = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return ((n ^ (n >>> 16)) >>> 0) / 4294967295; }
@@ -976,7 +976,20 @@ addEventListener("hashchange", route);
     m = nm; wt = nw; g = ng; por = np; spk = ns; mot = no; vet = nv; fl = nf; sa = nsa; lw = nl; GW = w; GH = hh;
     cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px";
     img = ctx.createImageData(GW, GH);
+    mapText();
     paint(0, 0, GW - 1, GH - 1);
+  }
+  // dónde hay texto: ahí el moho se queda más suave y las cochinillas casi nunca se posan
+  function mapText() {
+    if (!GW) return;
+    txt = new Uint8Array(GW * GH);
+    document.querySelectorAll("main p, main li, main h1, main h2, main h3, main blockquote, main figcaption, main .ficha, main .meta, main .escrito, main .big, nav a, .lang, footer").forEach(el => {
+      for (const rc of el.getClientRects()) {
+        const X0 = Math.max(0, Math.floor((rc.left + scrollX) / C)), X1 = Math.min(GW - 1, Math.ceil((rc.right + scrollX) / C));
+        const Y0 = Math.max(0, Math.floor((rc.top + scrollY) / C)), Y1 = Math.min(GH - 1, Math.ceil((rc.bottom + scrollY) / C));
+        for (let y = Y0; y <= Y1; y++) txt.fill(1, y * GW + X0, y * GW + X1 + 1);
+      }
+    });
   }
   function grow(x, y) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; }
   function wet(px, py) {
@@ -1063,8 +1076,9 @@ addEventListener("hashchange", route);
       // moho: de blanco grisáceo a gris verdoso, y con el tiempo puntos oscuros
       const gm = g[i], old = Math.min(1, Math.max(0, (wt[i] - MOLD_T - 45) / 90));
       const dorm = v < 0.08 ? 1 : 0;
-      const am = 0.3 * gm * (0.3 + 0.7 * spk[i]) * (0.6 + 0.4 * mott) * (dorm ? 0.75 : 1);
-      const dark = old * (spk[i] > 0.62 ? 1 : 0.25) * gm;
+      const am = 0.3 * gm * (0.3 + 0.7 * spk[i]) * (0.6 + 0.4 * mott) * (dorm ? 0.75 : 1) * (txt[i] === 1 ? 0.65 : 1);
+      const onTxt = txt[i] === 1;
+      const dark = old * (spk[i] > 0.62 ? 1 : 0.25) * gm * (onTxt ? 0.35 : 1);
       let mr = 128 - 34 * gm - 44 * dark, mg = 134 - 30 * gm - 44 * dark, mb = 108 - 26 * gm - 36 * dark;
       if (dorm) { const gr = (mr + mg + mb) / 3; mr = mr * 0.5 + gr * 0.5; mg = mg * 0.5 + gr * 0.5; mb = mb * 0.5 + gr * 0.5 + 4; }
       const t = ad + as + am + 1e-6;
@@ -1129,6 +1143,7 @@ addEventListener("hashchange", route);
       const i = y * GW + x, v = m[i];
       const px = x * C, py = y * C;
       if (scared.some(z => T - z.t < 90 && Math.hypot(z.x - px, z.y - py) < z.r)) continue;
+      if (txt[i] === 1 && Math.random() > 0.12) continue;
       if ((v > 0.04 && v < 0.2) || sa[i] > 0.25 || (g[i] > 0.4 && v > 0.03)) return { x: x * C + Math.random() * C, y: y * C + Math.random() * C };
     }
     return null;
@@ -1150,7 +1165,7 @@ addEventListener("hashchange", route);
     return { x: sx, y: sy, tx: t.x, ty: t.y, h: Math.atan2(t.y - sy, t.x - sx), st: 0, sz: 0.8 + Math.random() * 0.45, an: 0, fl: 0 };
   }
   function bugTick(dt, busy) {
-    if (firstWet < 0 || !m) return;
+    if (calm || firstWet < 0 || !m) return;
     if (T - firstWet > BUG_T && busy) {
       const cap = Math.min(100, 8 + (moist() / 14 | 0));
       spawnAcc += dt;
@@ -1251,6 +1266,7 @@ addEventListener("hashchange", route);
     [x0, y0, x1, y1] = p.box;
     cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px";
     img = ctx.createImageData(GW, GH);
+    mapText();
     // el tiempo que hemos estado fuera también ha pasado aquí
     let away = Math.min(1800, (performance.now() - p.at) / 1000);
     for (let n = 0, N = Math.min(90, away * 10 | 0); n < N; n++) { step(); drip(); }
