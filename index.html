@@ -790,6 +790,7 @@ function waterRipple(fig, im, px, py) {
       if (x > 1 && y > 1 && x < W - 2 && y < H - 2 && d <= R) a[y * W + x] += 1300 * Math.cos((d / R) * Math.PI / 2);
     }
     const startHash = location.hash, t0 = performance.now();
+    let imgOn = true;
     let fading = false;
     const frame = t => {
       if (!cv.isConnected) { waterBusy = false; return; }
@@ -798,7 +799,11 @@ function waterRipple(fig, im, px, py) {
           b[i] = ((a[i - 1] + a[i + 1] + a[i - W] + a[i + W]) * 0.5 - b[i]) * damp[i];
         const tmp = a; a = b; b = tmp;
       }
-      const showImg = location.hash === startHash;
+      if (imgOn) {
+        const r2 = im.getBoundingClientRect();
+        if (location.hash !== startHash || !im.isConnected || Math.abs(r2.left - ir.left) > 1 || Math.abs(r2.top - ir.top) > 1) imgOn = false;
+      }
+      const showImg = imgOn;
       for (let y = 1; y < H - 1; y++) for (let x = 1, i = y * W + 1; x < W - 1; x++, i++) {
         const dx = a[i - 1] - a[i + 1], dy = a[i - W] - a[i + W], q = i * 4, l = (dx + dy) * 0.09;
         const inImg = showImg && x >= ix && x < ix + iw && y >= iy && y < iy + ih;
