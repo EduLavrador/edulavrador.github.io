@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edu Lavrador</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3C11 11 7 16 7 21a9 9 0 0 0 18 0c0-5-4-10-9-18z' fill='%237A6A00'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Edu Lavrador">
+<meta property="og:description" content="Artista e investigador. Práctica procesual e instalación: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales.">
+<meta property="og:image" content="https://edulavrador.github.io/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Edu Lavrador. Artista e investigador. Práctica procesual e instalación: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales.">
+<style>
+:root {
+  /* Idea: hoja blanca, un solo color de lodo ácido para todo lo que se pulsa; datos de ficha en monoespaciada con flechas, como un cuaderno de campo */
+  --paper: #ffffff;
+  --ink: #23200f;
+  --mud: #7A6A00;
+  --mud-soft: #f3f0dc;
+  --rule: #e4e0c8;
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); }
+body { font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
+a { color: var(--mud); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--mud); outline-offset: 3px; }
+img { max-width: 100%; display: block; }
+[hidden] { display: none !important; }
+.wrap { padding: 0 20px; max-width: 1400px; margin: 0 auto; }
+
+/* Cabecera */
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 18px 0 28px; }
+.menu { display: grid; gap: 2px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; }
+.menu a[aria-current="page"] { text-decoration-thickness: 3px; }
+.lang { display: flex; gap: 2px; font-family: var(--mono); font-size: 13px; }
+.lang button { background: none; border: 0; padding: 4px 6px; font: inherit; color: var(--mud); cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--mud); color: var(--paper); }
+
+/* Carrusel */
+.car { position: relative; }
+.car-track { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.car-track::-webkit-scrollbar { display: none; }
+.car figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; display: grid; gap: 8px; }
+.car img { height: var(--h, 62vh); width: auto; max-width: none; object-fit: cover; background: var(--mud-soft); }
+.car figcaption { font-family: var(--mono); font-size: 12px; line-height: 1.45; color: var(--ink); opacity: 0.75; max-width: 46ch; }
+.car-ui { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--mud); }
+.car-ui button { background: none; border: 1px solid var(--mud); color: var(--mud); font: inherit; padding: 4px 10px; cursor: pointer; }
+.car-ui button:hover { background: var(--mud); color: var(--paper); }
+.car-ui .count { font-variant-numeric: tabular-nums; }
+
+/* Portada */
+.intro { font-size: 15px; max-width: 52ch; margin: 34px 0 0; }
+.feed { display: grid; gap: 72px; margin: 64px 0 80px; }
+.entry { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 24px; align-items: start; }
+.entry .meta { display: grid; gap: 0; font-size: 14px; position: sticky; top: 18px; }
+.entry .meta a { font-size: 15px; margin-bottom: 8px; }
+.entry .meta span { color: var(--mud); }
+.entry .meta .yr { font-family: var(--mono); font-size: 12px; margin-top: 8px; }
+.entry .shot { display: block; width: 100%; }
+.entry.m .shot { width: 76%; }
+.entry.s .shot { width: 50%; }
+.entry.right .shot { margin-left: auto; }
+.group { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mud); margin: 0 0 -32px; padding-top: 16px; border-top: 1px solid var(--mud); }
+.car figure.vid .yt-frame { height: var(--h, 62vh); aspect-ratio: 16 / 9; }
+.field { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.field li { display: grid; grid-template-columns: 96px 1fr; gap: 8px; }
+.field li b { font-weight: 400; color: var(--mud); }
+.entry .shot img { width: 100%; height: auto; max-height: 78vh; object-fit: cover; transition: opacity 0.25s; }
+.entry .shot:hover img { opacity: 0.88; }
+
+/* Proyecto */
+.phead { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 24px; margin-bottom: 36px; }
+.phead h1 { font-size: 15px; margin: 0; color: var(--mud); text-transform: uppercase; letter-spacing: 0.02em; }
+.ficha { font-family: var(--mono); font-size: 13px; line-height: 1.6; display: grid; gap: 2px; }
+.pbody { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 24px; margin: 44px 0 64px; }
+.pbody .side { display: grid; gap: 22px; align-content: start; }
+.quote { font-style: italic; font-size: 15px; color: var(--mud); margin: 0; }
+.quote cite { display: block; font-style: normal; font-family: var(--mono); font-size: 12px; margin-top: 6px; color: var(--ink); opacity: 0.7; }
+.prose { max-width: 62ch; font-size: 17px; }
+.prose p { margin: 0 0 1em; }
+.box { border-top: 1px solid var(--mud); padding-top: 10px; font-size: 14px; display: grid; gap: 4px; }
+.box h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 4px; color: var(--mud); }
+.box .soft { opacity: 0.7; }
+.escrito { max-width: 62ch; font-size: 17px; white-space: pre-line; }
+.escrito.poem { line-height: 1.7; }
+.esc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.esc-list li { display: block; }
+.big { font-size: clamp(18px, 2.2vw, 26px); line-height: 1.35; max-width: 900px; }
+.big .sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mud); margin: 0 0 20px; }
+.big a { text-decoration-thickness: 1px; }
+.contact p { margin: 0 0 22px; }
+.contact span { font-size: 0.7em; }
+.note { font-size: 13px; opacity: 0.7; margin-top: 28px; }
+.vids { display: grid; gap: 28px; margin: 8px 0 0; max-width: 900px; }
+.yt { display: grid; gap: 6px; }
+.yt-frame { position: relative; aspect-ratio: 16 / 9; background: var(--ink); }
+.yt-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.yt-play { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; cursor: pointer; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: inherit; }
+.yt-play span { display: grid; place-items: center; gap: 12px; font-size: 14px; }
+.yt-play span::before { content: ""; width: 0; height: 0; border-left: 26px solid var(--mud); border-top: 16px solid transparent; border-bottom: 16px solid transparent; margin-left: 8px; }
+.yt-play:hover span::before { border-left-color: var(--paper); }
+.yt small { font-size: 12px; opacity: 0.75; }
+.loop { display: grid; gap: 6px; }
+.loop video { width: 100%; height: auto; display: block; background: var(--mud-soft); }
+.loop figcaption { font-size: 12px; opacity: 0.75; }
+.next { border-top: 1px solid var(--rule); padding: 28px 0 60px; font-size: 14px; }
+
+/* Páginas de texto */
+.page { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 24px; margin-bottom: 80px; }
+.page h1 { font-size: 15px; margin: 0; color: var(--mud); text-transform: uppercase; letter-spacing: 0.02em; }
+.cv { display: grid; gap: 36px; max-width: 820px; }
+.cv h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mud); margin: 0 0 10px; }
+.cv ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cv li { display: grid; grid-template-columns: 88px 1fr; gap: 12px; font-size: 15px; }
+.cv li b { font-family: var(--mono); font-weight: 400; font-size: 13px; color: var(--mud); padding-top: 2px; font-variant-numeric: tabular-nums; }
+
+footer { border-top: 1px solid var(--rule); padding: 18px 0 30px; font-family: var(--mono); font-size: 12px; color: var(--mud); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 760px) {
+  .entry, .phead, .pbody, .page { grid-template-columns: 1fr; gap: 12px; }
+  .entry .meta { position: static; }
+  .entry.m .shot, .entry.s .shot { width: 100%; }
+  .car figure.vid .yt-frame { width: 84vw; height: auto; }
+  .group { margin-bottom: -20px; }
+  .car img { width: 84vw; height: auto; max-height: var(--hm, 60vh); object-fit: cover; }
+  .car figcaption { max-width: 84vw; }
+  .pbody .side { order: 2; }
+  .feed { gap: 56px; margin-top: 48px; }
+  .prose { font-size: 16px; }
+  .cv li { grid-template-columns: 72px 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .car-track { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <nav class="menu" aria-label="Menú" id="menu"></nav>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" data-l="es" aria-pressed="true">ES</button>
+      <button type="button" data-l="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+  <main id="view"></main>
+  <footer><span>© 2026 Edu Lavrador</span><span><a href="https://www.instagram.com/edulavrador/" target="_blank" rel="noopener">Instagram</a> · <span id="foot"></span></span></footer>
+</div>
+
+<script>
+/* =============== CONTENIDO =============== */
+const UI = {
+  es: { projects: "Proyectos", bio: "Bio", cv: "CV", texts: "Textos", contact: "Contacto", prev: "Anterior", next: "Siguiente", nextProject: "Siguiente proyecto", catalog: "Catálogo", text: "Texto", writings: "Escritos", origNote: "", works: "Obras", lines: "Líneas abiertas y mediación", fieldbook: "Cuaderno de campo", catalogSoon: "En preparación.", videos: "Vídeos", play: "Reproducir", back: "Todos los proyectos", place: "Málaga" },
+  en: { projects: "Projects", bio: "Bio", cv: "CV", texts: "Texts", contact: "Contact", prev: "Previous", next: "Next", nextProject: "Next project", catalog: "Catalogue", text: "Text", writings: "Writings", origNote: "Translated from the Spanish original.", works: "Works", lines: "Ongoing lines and mediation", fieldbook: "Field notebook", catalogSoon: "In preparation.", videos: "Videos", play: "Play", back: "All projects", place: "Málaga" }
+};
+
+const HERO = [
+  ["fricciones-cono", { es: "Fricciones galvánicas, 2026", en: "Fricciones galvánicas, 2026" }],
+  ["portada-goteo", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }],
+  ["agua-caracol", { es: "Agua, por favor, 2025", en: "Agua, por favor, 2025" }],
+  ["humedad-interior", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }],
+  ["guad-humedal", { es: "Guadalmedina. Trabajo de campo, 2025", en: "Guadalmedina. Fieldwork, 2025" }],
+  ["axarquia-vasija", { es: "Proyecto en desarrollo. La Axarquía, 2026", en: "Work in progress. La Axarquía, 2026" }],
+  ["agua-punta", { es: "Agua, por favor, 2025", en: "Agua, por favor, 2025" }],
+  ["humus-noche", { es: "Humusidades, 2025", en: "Humusidades, 2025" }],
+  ["humedad-conductos", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }]
+];
+
+const PROJECTS = [
+  {
+    id: "fricciones-galvanicas",
+    group: "obra",
+    title: "Fricciones galvánicas",
+    kind: { es: "Instalación. Con Clara Basterrechea", en: "Installation. With Clara Basterrechea" },
+    where: "Casa del Socorro, Málaga",
+    year: "2026",
+    cover: "fricciones-tripode",
+    ficha: {
+      es: ["Infraestructuras mínimas de supervivencia e identidad.", "2026. Tragaluz de la Casa del Socorro, Málaga. Espacio gestionado por Promálaga y La Casa Amarilla.", "Exposición colectiva Estival.", "Clara Basterrechea y Edu Lavrador."],
+      en: ["Minimal infrastructures of survival and identity.", "2026. Skylight of the Casa del Socorro, Málaga. Space run by Promálaga and La Casa Amarilla.", "Group exhibition Estival.", "Clara Basterrechea and Edu Lavrador."]
+    },
+    quote: null,
+    text: {
+      es: ["En un pequeño tragaluz de la Casa de Socorro, varias vasijas cerámicas parecen emerger de un subsuelo inaccesible. Concebidas como pequeñas celdas electroquímicas e inspiradas en la imagen especulativa del hallazgo arqueológico de la pila de Bagdad, las piezas apuntan a una forma mínima de soporte: la necesaria para encender una luz.",
+           "La instalación imagina una infraestructura enterrada, una red arcaica, húmeda y silenciosa que rebosa hacia la superficie. Esta reconstrucción contemporánea de una tecnología antigua activa una ficción material en la que barro, metal, líquido, piedra y luz entran en fricción.",
+           "La energía aparece aquí como una señal mínima: no pertenece a un solo elemento, sino que se produce de la fricción entre varios. Desde esa misma lógica, la obra entiende la identidad no como una esencia previa, sino como una forma en proceso: algo que se constituye por contacto, acumulación y transformación."],
+      en: ["In a small skylight of the Casa del Socorro, several ceramic vessels seem to emerge from an inaccessible subsoil. Conceived as small electrochemical cells and inspired by the speculative image of the archaeological find known as the Baghdad battery, the pieces point to a minimal form of support: the one needed to switch on a light.",
+           "The installation imagines a buried infrastructure, an archaic, damp and silent network brimming over towards the surface. This contemporary reconstruction of an ancient technology activates a material fiction in which clay, metal, liquid, stone and light come into friction.",
+           "Energy appears here as a minimal signal: it does not belong to a single element, but arises from the friction between several. Following the same logic, the work understands identity not as a prior essence, but as a form in process: something constituted through contact, accumulation and transformation."]
+    },
+    images: [["fricciones-vista", null], ["fricciones-tripode", null], ["fricciones-cono", null], ["fricciones-cono-noche", null], ["fricciones-vasija-azul", null], ["fricciones-vasija", null]],
+    catalog: false
+  },
+  {
+    id: "humedad-luego-cristaliza",
+    title: "Humedad, luego cristaliza",
+    kind: { es: "Exposición individual. Instalación procesual", en: "Solo exhibition. Processual installation" },
+    where: "Museo Cristo de la Sangre, Murcia",
+    year: "2026",
+    cover: "humedad-vista",
+    ficha: {
+      es: ["2026. Sala Ángel Imbernón, Museo Cristo de la Sangre (Murcia).", "Comisariado: Pedro A. Cruz, Marta Iranzo y Guille Rodríguez."],
+      en: ["2026. Sala Ángel Imbernón, Museo Cristo de la Sangre (Murcia).", "Curated by Pedro A. Cruz, Marta Iranzo and Guille Rodríguez."]
+    },
+    quote: {
+      es: ["“En Lavrador, el yo deja de funcionar como la garantía de existencia para ser reemplazado por una condición como la de la ‘humedad’.”", "P. A. Cruz, texto de sala."],
+      en: ["“In Lavrador, the self stops working as the guarantee of existence and is replaced by a condition such as that of ‘humidity’.”", "P. A. Cruz, exhibition text."]
+    },
+    text: {
+      es: ["Un único depósito alimenta toda la sala. De él parten tubos transparentes que cruzan las paredes hasta las macetas que el museo ya tenía, y son ellas, cuando su tierra se seca, las que llaman al agua. Por el camino, los tubos pierden. El agua se escapa por sus poros, cae sobre una lona tendida en lo alto, se filtra hasta un poto suspendido en el centro y gotea de vuelta al depósito del que salió.",
+           "El poto, una planta de casa, no pide nada. Bebe lo que otras plantas reclaman y recibe más de lo que necesita, a veces menos. Alrededor orbitan otras fases de lo húmedo: frascos herméticos con pequeños ecosistemas tomados del Guadalmedina, dos recipientes con agua, sustrato y plantas del río, uno exuberante y otro casi desierto, y caracoles que siguen el rastro de la humedad hasta un rincón resguardado tras vitrinas translúcidas."],
+      en: ["A single tank feeds the whole room. From it, transparent tubes cross the walls to the plant pots the museum already had, and it is they, when their soil dries out, that call for water. Along the way, the tubes leak. Water escapes through their pores, falls onto a canvas stretched up high, filters down to a pothos suspended in the centre and drips back into the tank it came from.",
+           "The pothos, a houseplant, asks for nothing. It drinks what other plants claim and receives more than it needs, sometimes less. Around it orbit other phases of the humid: sealed jars holding small ecosystems taken from the Guadalmedina, two containers with water, substrate and river plants, one lush and the other almost desert, and snails that follow the trail of humidity to a sheltered corner behind translucent vitrines."]
+    },
+    images: [
+      ["humedad-vista", { es: "Vista central de donde sale y hacia donde regresa el agua de riego que viaja por la sala. Al fondo, los módulos translúcidos que sirven de refugio húmedo a los caracoles.", en: "Central view of where the irrigation water that travels through the room leaves from and returns to. In the background, the translucent modules that serve as a damp refuge for the snails." }],
+      ["humedad-lona", { es: "La lona filtradora recoge sedimentos y materia orgánica a lo largo de la instalación.", en: "The filtering canvas collects sediment and organic matter throughout the installation." }],
+      ["humedad-poto", { es: "Maceta de bioplástico con un esqueje de poto doméstico que desagua el exceso de riego en el ecosistema modular acuático.", en: "Bioplastic pot with a cutting of a household pothos that drains excess irrigation into the modular aquatic ecosystem." }],
+      ["humedad-ecosistema", { es: "Detalle del ecosistema modular acuático central.", en: "Detail of the central modular aquatic ecosystem." }],
+      ["humedad-interior", { es: "Interior del ecosistema acuático.", en: "Inside the aquatic ecosystem." }],
+      ["humedad-refugio", { es: "Refugio modular húmedo para los caracoles que habitan el ecosistema modular acuático.", en: "Damp modular refuge for the snails living in the modular aquatic ecosystem." }],
+      ["humedad-refugio-2", null],
+      ["humedad-conductos", null],
+      ["humedad-planta", null],
+      ["humedad-sensor", null],
+      ["humedad-modulo", null],
+      ["humedad-caracol", null],
+      ["humedad-hermeticos", null]
+    ],
+    catalog: false
+  },
+  {
+    id: "agua-por-favor",
+    title: "Agua, por favor",
+    kind: { es: "Exposición individual. Instalación procesual", en: "Solo exhibition. Processual installation" },
+    where: "Sala Chema Cobo, Universidad de Málaga",
+    year: "2025",
+    cover: "agua-sala",
+    ficha: {
+      es: ["2025. Sala de Exposiciones Chema Cobo, Facultad de Bellas Artes, Universidad de Málaga.", "Comisariado: Eugenio Rivas y Marta Iranzo."],
+      en: ["2025. Sala de Exposiciones Chema Cobo, Faculty of Fine Arts, Universidad de Málaga.", "Curated by Eugenio Rivas and Marta Iranzo."]
+    },
+    quote: {
+      es: ["“El agua se pide, se suplica”.", "Eugenio Rivas y Marta Iranzo, comisarios."],
+      en: ["“Water is asked for, it is begged for.”", "Eugenio Rivas and Marta Iranzo, curators."]
+    },
+    text: {
+      es: ["En el centro de la sala, un poto espera. Es el mismo que meses después, en Humedad, luego cristaliza, dejaría de pedir. Cuando tiene sed, una campana empieza a girar y suena sin descanso hasta que alguien se acerca y vierte agua en el sistema. Ese gesto lo pone todo en marcha. El agua sube hasta un pequeño aljibe en el punto más alto de la sala, que está en pendiente, y desde allí baja por gravedad, deprisa, hasta el último módulo. Lo que sobra vuelve despacio a los recipientes, unidos como vasos comunicantes, y se reparte entre todos.",
+           "Dentro del circuito, cada organismo alimenta a otro. Los excrementos de los caracoles abonan la planta, y los restos del sustrato nutren poco a poco a las plantas acuáticas.",
+           "Aquí es la planta quien pide el agua, y alguien tiene que responder."],
+      en: ["In the centre of the room, a pothos waits. It is the same one that, months later, in Humedad, luego cristaliza, would stop asking. When it is thirsty, a bell starts to turn and rings without rest until someone comes over and pours water into the system. That gesture sets everything in motion. The water rises to a small cistern at the highest point of the room, which slopes, and from there runs down by gravity, quickly, to the last module. What is left over flows slowly back into the containers, joined as communicating vessels, and is shared among them all.",
+           "Within the circuit, each organism feeds another. The snails' droppings fertilise the plant, and the remains of the substrate slowly nourish the aquatic plants.",
+           "Here it is the plant that asks for water, and someone has to answer."]
+    },
+    images: [
+      ["agua-sala", { es: "Vista general de la sala y los módulos de iluminación.", en: "General view of the room and the lighting modules." }],
+      ["agua-modulo-luz", null],
+      ["agua-modulo", { es: "Módulo central de donde sale y a donde llega el agua de riego antes de repartirse por vasos comunicantes.", en: "Central module where the irrigation water leaves and returns before being shared out through communicating vessels." }],
+      ["agua-poto", null],
+      ["agua-campana", { es: "Campana que se activa cuando el sensor en el poto del módulo central detecta falta de agua.", en: "Bell that is triggered when the sensor in the pothos of the central module detects a lack of water." }],
+      ["agua-dispositivo", { es: "Dispositivo con el que hay que interactuar cuando suena la campana. Al activarlo se enciende la bomba que distribuye el riego por la sala.", en: "Device visitors must use when the bell rings. Activating it switches on the pump that distributes the water through the room." }],
+      ["agua-gesto", { es: "El gesto de verter agua en el sistema.", en: "The gesture of pouring water into the system." }],
+      ["agua-vaso", null],
+      ["agua-cilindro", null],
+      ["agua-tanque", null],
+      ["agua-bifurcacion", { es: "Detalle de una de las bifurcaciones del sistema de distribución del agua por la sala.", en: "Detail of one of the branches of the water distribution system." }],
+      ["agua-techo", null],
+      ["agua-punta", null],
+      ["agua-rincon", { es: "En un rincón de la sala, una acumulación de materia vegetal modelada por la escorrentía de un curso de agua que pasó hace tiempo se sostiene con el escaso riego de una fuga en el sistema hídrico de la exposición.", en: "In a corner of the room, a mass of plant matter shaped by the runoff of a watercourse that passed long ago is kept alive by the scant watering of a leak in the exhibition's water system." }],
+      ["agua-brotes", { es: "Detalle de brotes en la acumulación de material vegetal antes de su colapso por falta de goteo en la fuga.", en: "Detail of shoots in the plant mass before it collapsed when the leak stopped dripping." }],
+      ["agua-pared", null],
+      ["agua-caracol", { es: "Detalle de los caracoles que circulaban libremente por los conductos de la instalación.", en: "Detail of the snails that moved freely through the installation's conduits." }],
+      ["agua-caracoles", null],
+      ["agua-caracoles-tanque", null],
+      ["agua-caracol-arena", null],
+      ["agua-sedimento", null],
+      ["agua-cilindro-plantas", null]
+    ],
+    loop: { src: "agua-loop", cap: { es: "Toma de muestras en el Guadalmedina. Vídeo en bucle.", en: "Sampling in the Guadalmedina. Looping video." } },
+    catalog: false
+  },
+  {
+    id: "guadalmedina",
+    title: { es: "Guadalmedina. Trabajo de campo", en: "Guadalmedina. Fieldwork" },
+    kind: { es: "Línea de investigación abierta. Humedal postnatural", en: "Ongoing line of research. Post-natural wetland" },
+    where: "Río Guadalmedina, Málaga",
+    year: "2025–",
+    cover: "guad-humedal",
+    ficha: {
+      es: ["2025–. Cauce del río Guadalmedina, tramo final, Málaga.", "Caso de estudio de la tesis doctoral Hidroinfraestructuras vivas."] ,
+      en: ["2025–. Bed of the Guadalmedina river, final stretch, Málaga.", "Case study of the doctoral thesis Hidroinfraestructuras vivas."] 
+    },
+    quote: null,
+    text: {
+      es: ["Parece que los diversos intentos de ajardinamiento del Ayuntamiento de Málaga han generado allí un orden estructurado por el hormigón, un jardín de cemento bordeado por dos acequias que transportan el agua de este saneamiento hasta el Mediterráneo. Dos acequias que nos gritan que sigue siendo un río a pesar de todo. Aquí nos encontramos con nada más y nada menos que con el único humedal postnatural del distrito centro de Málaga, de apenas cincuenta metros cuadrados, que se genera cuando la rotura en la acequia oeste provoca que el agua inunde parcialmente el pavimento y cruce hasta su gemela en el lado este.",
+           "Desde este humedal accidental podemos observar cigüeñuelas, garzas y ánades. También observamos con sorpresa <i>Dytiscus marginalis</i>, ninfas de artrópodos, cangrejo rojo de río (especie invasora), especies del género <i>Lymnaea</i> y colémbolos. Todos estos organismos, junto a un cosmos botánico diverso, son aviso de un agua más limpia de lo que pudiera parecer en una primera lectura, libre de ciertos químicos y bien oxigenada, y además indicadores de un suelo capaz de sostener ciclos de vida que contradicen la imagen de un cauce definitivamente muerto.",
+           "El río está permanentemente planificado y, al mismo tiempo, profundamente desatendido. Esta planificación constante produce una espera indefinida. Y en esa espera, la vida encuentra un margen para aparecer."],
+      en: ["The various landscaping attempts by Málaga City Council seem to have produced there an order structured by concrete, a cement garden bordered by two channels that carry the water from this drainage to the Mediterranean. Two channels that shout at us that it is still a river in spite of everything. Here we find nothing less than the only post-natural wetland in Málaga's city centre, barely fifty square metres in size, which forms when a break in the west channel lets water partly flood the paving and cross over to its twin on the east side.",
+           "From this accidental wetland we can observe black-winged stilts, herons and ducks. We also observe, with surprise, <i>Dytiscus marginalis</i>, arthropod nymphs, red swamp crayfish (an invasive species), species of the genus <i>Lymnaea</i> and springtails. All these organisms, together with a diverse botanical cosmos, signal water cleaner than it might seem at first reading, free of certain chemicals and well oxygenated, and they also indicate a soil able to sustain life cycles that contradict the image of a riverbed that is dead for good.",
+           "The river is permanently planned and, at the same time, deeply neglected. This constant planning produces an indefinite wait. And in that wait, life finds a margin in which to appear."]
+    },
+    images: [
+      ["guad-humedal", { es: "El humedal del tramo final del cauce. Noviembre de 2025.", en: "The wetland in the final stretch of the riverbed. November 2025." }],
+      ["guad-muestras", { es: "Toma de muestras de agua en el humedal.", en: "Taking water samples in the wetland." }],
+      ["guad-pavimento", { es: "El agua de la acequia rota cruza el pavimento.", en: "Water from the broken channel crossing the paving." }],
+      ["guad-vegetacion", null],
+      ["guad-muro", null],
+      ["guad-hierba", null]
+    ],
+    loop: { src: "agua-loop", cap: { es: "Toma de muestras en el Guadalmedina. Vídeo en bucle.", en: "Sampling in the Guadalmedina. Looping video." } },
+    catalog: false
+  },
+  {
+    id: "rigor-plastic-humusidades",
+    title: "Rigor Plastic 1.0 / Humusidades",
+    kind: { es: "Instalación con organismos vivos", en: "Installation with living organisms" },
+    where: "Ars Electronica, Linz · Sevilla · Málaga",
+    year: "2023–2025",
+    cover: "rigor-figura",
+    ficha: {
+      es: ["2023. Fundación Aparejadores, Sevilla.", "2023. Ars Electronica Festival, Linz.", "2025. Centro Cultural María Victoria Atencia, Málaga."],
+      en: ["2023. Fundación Aparejadores, Seville.", "2023. Ars Electronica Festival, Linz.", "2025. Centro Cultural María Victoria Atencia, Málaga."]
+    },
+    quote: null,
+    text: {
+      es: ["La pieza nace de Rigor Plastic 1.0 (2023), seleccionada para Ars Electronica, en la que larvas de <i>Zophobas morio</i> se alimentaban de una figura humana de poliestireno suspendida sobre un huerto de leguminosas. Humusidades convierte aquella escena en una máquina. Dentro de un recipiente de vidrio, las larvas comen poliestireno expandido rescatado de playas y vertederos, un plástico que, según investigaciones recientes, pueden degradar gracias a bacterias de su intestino. Lo que excretan se decanta en agua. Una pequeña bomba lleva esa agua, cargada de materia orgánica, hasta un cultivo en la base de la estructura, donde brotan las semillas. Lo que para casi todo lo vivo es residuo acaba convertido en abono."],
+      en: ["The piece grows out of Rigor Plastic 1.0 (2023), selected for Ars Electronica, in which <i>Zophobas morio</i> larvae fed on a polystyrene human figure suspended over a bed of legumes. Humusidades turns that scene into a machine. Inside a glass vessel, the larvae eat expanded polystyrene rescued from beaches and landfills, a plastic that, according to recent research, they can break down thanks to bacteria in their gut. What they excrete settles in water. A small pump carries that water, loaded with organic matter, to a crop at the base of the structure, where the seeds sprout. What is waste for almost every living thing ends up as fertiliser."]
+    },
+    images: [
+      ["rigor-figura", { es: "Rigor Plastic 1.0. Fundación Aparejadores de Sevilla.", en: "Rigor Plastic 1.0. Fundación Aparejadores, Seville." }],
+      ["rigor-proceso", { es: "Detalle del proceso ocurrido durante Rigor Plastic 1.0.", en: "Detail of the process during Rigor Plastic 1.0." }],
+      ["rigor-cuerpo", null],
+      ["rigor-ars", null],
+      ["rigor-pies", null],
+      ["rigor-pradera", null],
+      ["humus-mva", { es: "Humusidades. Centro Cultural María Victoria Atencia, Málaga.", en: "Humusidades. Centro Cultural María Victoria Atencia, Málaga." }],
+      ["humus-noche", null],
+      ["humus-vaso", null],
+      ["humus-violeta", null]
+    ],
+    videos: [["Rigor Plastic", "2L5XqU9hP6s"], ["Humusidades", "zCz8gQgcCI0"]],
+    catalog: false
+  },
+  {
+    id: "styrum",
+    title: "Styrum",
+    kind: { es: "Ficción especulativa. Muestras y vídeo", en: "Speculative fiction. Samples and video" },
+    where: "",
+    year: "2024",
+    cover: "styrum-azul",
+    ficha: { es: ["2024."], en: ["2024."] },
+    quote: null,
+    text: {
+      es: ["En un momento en el que la cantidad de agua en los océanos apenas podrá ser medida en centímetros cúbicos y toneladas de sal, los Styrum emergerán como la última esperanza de la vida terrestre, consumiendo todos los restos plásticos para extraer carbono e hidrógeno. Habitarán en extensas colonias que se expandirán por lo que actualmente constituye el lecho oceánico, en grandes acumulaciones sobre lo que un día serán sucios recuerdos de nuestra existencia, en su mayoría irreconocibles. Los Styrum serán una especie de “pseudo-hongos”. Al igual que estos, y a diferencia de los vegetales, no realizarán la fotosíntesis. Su método reproductivo será la esporulación, pero también desarrollarán un sistema nervioso ramificado, convirtiendo a cada colonia en un único individuo.",
+           "Durante las largas noches, emitirán una hipnótica iridiscencia que servirá de trampa para las pocas formas de vida que aún vagarán por nuestro planeta en busca de escasos recursos. Cuando estos desafortunados lleguen a una colonia de Styrum, su destino estará sellado, ya que las esporas invadirán el organismo del sujeto, dando inicio a una traicionera relación simbiótica. El Styrum proporcionará carbono, hidrógeno y sodio al huésped, guiándolo hacia la acumulación de residuos fósiles y plásticos sin colonizar más cercanos. Lo que el huésped desconocerá es que, tan pronto lleguen al que será el nuevo hábitat del Styrum, este comenzará a comportarse de manera parasitaria, consumiendo al individuo por completo y colonizando el nuevo territorio, reiniciando así su ciclo de vida."],
+      en: ["At a time when the amount of water in the oceans can barely be measured in cubic centimetres and tonnes of salt, the Styrum will emerge as the last hope of life on Earth, consuming every plastic remnant to extract carbon and hydrogen. They will live in vast colonies spreading across what is now the ocean floor, in great accumulations over what will one day be grimy, mostly unrecognisable memories of our existence. The Styrum will be a kind of “pseudo-fungi”. Like fungi, and unlike plants, they will not photosynthesise. They will reproduce by sporulation, but they will also develop a branching nervous system, turning each colony into a single individual.",
+           "During the long nights, they will give off a hypnotic iridescence that will act as a lure for the few forms of life still wandering the planet in search of scarce resources. When these unfortunate creatures reach a Styrum colony, their fate will be sealed: the spores will invade the subject's body, beginning a treacherous symbiotic relationship. The Styrum will supply the host with carbon, hydrogen and sodium, guiding it towards the nearest uncolonised accumulation of fossil waste and plastics. What the host will not know is that, as soon as they reach the Styrum's new habitat, it will begin to behave as a parasite, consuming the individual entirely and colonising the new territory, thus starting its life cycle again."]
+    },
+    images: [
+      ["styrum-azul", null], ["styrum-colonia", null], ["styrum-roca", null], ["styrum-roca-2", null], ["styrum-anillo", null], ["styrum-pieza", null], ["styrum-filamentos", null],
+      ["styrum-muestras", null], ["styrum-m12", null], ["styrum-m13", null], ["styrum-m1", null], ["styrum-m10", null], ["styrum-m11", null], ["styrum-m7", null], ["styrum-m9", null], ["styrum-m29", null], ["styrum-m33", null], ["styrum-ramas", null]
+    ],
+    videos: [["Styrum", "W8d3GFTx8fU"], ["Styrum", "1Zz-5fLtlP8"], [{ es: "Styrum. Experimentación", en: "Styrum. Experiment" }, "5f0caKJmGSg"]],
+    catalog: false
+  },
+  {
+    id: "en-desarrollo-axarquia",
+    title: { es: "Proyecto en desarrollo", en: "Work in progress" },
+    kind: { es: "Riego por barro poroso. Ensayos cerámicos", en: "Porous clay irrigation. Ceramic trials" },
+    where: "La Axarquía, Málaga",
+    year: "2026",
+    cover: "axarquia-vasija",
+    ficha: { es: ["2026. La Axarquía, Málaga.", "Proceso abierto, sin forma expositiva."], en: ["2026. La Axarquía, Málaga.", "Open process, with no exhibition form yet."] },
+    quote: null,
+    text: {
+      es: ["En un huerto de la Axarquía, un territorio de bancales y acequias de tradición andalusí, vasijas de barro sin esmaltar enterradas junto a las plantas liberan agua a través de sus poros atendiendo a la sed del sustrato. Es una técnica de riego muy antigua, practicada en muchas regiones secas del mundo. El riego sucede cada día, fuera de cualquier sala, y las plantas crecen o se secan según funcione.",
+           "De aquí nace una segunda línea: fabricar esas vasijas con tierra de lugares que contuvieron agua, como cauces secos o enterrados, antiguas acequias o solares urbanos levantados sobre terrenos húmedos. Con cada tierra se ensayan pastas cerámicas para dos tipos de piezas: conducciones estancas, que transportan el agua, y vasijas porosas, que la dejan filtrar. El barro vuelve así a sostener el agua que un día guardó.",
+           "Es un proceso abierto, todavía sin forma expositiva, que se documenta a medida que se ensaya."],
+      en: ["In a vegetable garden in La Axarquía, a territory of terraces and irrigation channels of Andalusí tradition, unglazed clay vessels buried beside the plants release water through their pores, attending to the thirst of the substrate. It is a very old irrigation technique, practised in many dry regions of the world. The watering happens every day, outside any exhibition space, and the plants grow or dry out depending on whether it works.",
+           "From here a second line emerges: making those vessels with earth from places that once held water, such as dry or buried riverbeds, old irrigation channels or urban plots built over wet ground. With each earth, ceramic pastes are tested for two kinds of pieces: watertight conduits, which carry water, and porous vessels, which let it seep through. Clay thus returns to holding the water it once kept.",
+           "It is an open process, with no exhibition form yet, documented as it is tested."]
+    },
+    images: [
+      ["axarquia-vasija", { es: "Recipiente de terracota sin esmaltar enterrado entre tomateras, alimentado por un tubo de silicona. Axarquía, Málaga, 2026.", en: "Unglazed terracotta vessel buried among tomato plants, fed by a silicone tube. Axarquía, Málaga, 2026." }],
+      ["axarquia-tapa", { es: "Detalle de vasija enterrada y el agua que se acumula en su tapa.", en: "Detail of a buried vessel and the water collecting on its lid." }],
+      ["axarquia-huerto", null],
+      ["axarquia-bancal", null]
+    ],
+    catalog: false
+  },
+  {
+    id: "t-ejido",
+    title: { es: "Talleres, charlas y mediación", en: "Workshops, talks and mediation" },
+    kind: { es: "T-ejido. Pop the Vote! (Culture Action Europe)", en: "T-ejido. Pop the Vote! (Culture Action Europe)" },
+    where: "Bruselas · Málaga",
+    year: "2024–2026",
+    cover: "tejido-taller",
+    ficha: {
+      es: ["2024. Changemakers' Playground Camp, Pop the Vote! Culture on the Ballot. Bruselas.", "2026. T-ejido, jornadas, charlas y taller de construcción intuitiva. Málaga."],
+      en: ["2024. Changemakers' Playground Camp, Pop the Vote! Culture on the Ballot. Brussels.", "2026. T-ejido, programme of talks and intuitive building workshop. Málaga."]
+    },
+    quote: null,
+    text: {
+      es: ["Selección como Changemaker en Pop the Vote! Culture on the Ballot (2024), programa de Culture Action Europe cofinanciado por el Parlamento Europeo. Durante la residencia formativa en Bélgica se presentó LATE, Life After The Extinction, y allí surgió T-ejido, que después tomó forma en Málaga como jornadas y taller de construcción intuitiva."],
+      en: ["Selected as a Changemaker in Pop the Vote! Culture on the Ballot (2024), a Culture Action Europe programme co-funded by the European Parliament. During the training residency in Belgium, LATE, Life After The Extinction was presented, and there T-ejido emerged, which later took shape in Málaga as a programme of talks and an intuitive building workshop."]
+    },
+    images: [
+      ["tejido-taller", null],
+      ["tejido-charla", { es: "Charla sobre T-ejido durante el desarrollo de Pop the Vote!. Bruselas.", en: "Talk on T-ejido during Pop the Vote!. Brussels." }],
+      ["tejido-mural", { es: "Acción. Pega de mural por el voto joven y diverso para las elecciones al Parlamento Europeo. 2024.", en: "Action. Mural pasting for a young and diverse vote in the European Parliament elections. 2024." }],
+      ["tejido-jornadas", { es: "Jornadas estudiantiles de T-ejido en Málaga: comida compartida y asamblea sobre la pertenencia.", en: "T-ejido student gathering in Málaga: shared meal and assembly on belonging." }],
+      ["tejido-jam", { es: "Jam session durante las jornadas de T-ejido.", en: "Jam session during the T-ejido gathering." }],
+    ],
+    catalog: false
+  }
+];
+
+/* Orden, grupos, tamaños en portada, cuaderno de campo y vídeos en carrusel */
+(() => {
+  const ORDER = [
+    ["fricciones-galvanicas", "obra", "l"], ["humedad-luego-cristaliza", "obra", "m right"], ["agua-por-favor", "obra", "l"],
+    ["rigor-plastic-humusidades", "obra", "s"], ["styrum", "obra", "m right"],
+    ["guadalmedina", "linea", "l"], ["en-desarrollo-axarquia", "linea", "m right"], ["t-ejido", "linea", "s"]
+  ];
+  const byId = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
+  PROJECTS.length = 0;
+  ORDER.forEach(([id, g, sz]) => { const p = byId[id]; p.group = g; p.size = sz; PROJECTS.push(p); });
+  byId["guadalmedina"].field = {
+    es: [["Superficie", "Unos 50 m²"], ["Origen", "Rotura de la acequia oeste; el agua cruza el pavimento hasta la acequia este"], ["Aves", "Cigüeñuelas, garzas, ánades"], ["Insectos", "<i>Dytiscus marginalis</i>, ninfas de artrópodos, colémbolos"], ["Moluscos", "<i>Lymnaea</i> sp."], ["Crustáceos", "Cangrejo rojo de río (invasora)"], ["Muestras", "Agua y suelo; medición de pH"], ["Equipo", "Botas de agua, recipientes de vidrio, pala de jardinero"]],
+    en: [["Area", "About 50 m²"], ["Origin", "Break in the west channel; water crosses the paving to the east channel"], ["Birds", "Black-winged stilts, herons, ducks"], ["Insects", "<i>Dytiscus marginalis</i>, arthropod nymphs, springtails"], ["Molluscs", "<i>Lymnaea</i> sp."], ["Crustaceans", "Red swamp crayfish (invasive)"], ["Samples", "Water and soil; pH measurement"], ["Kit", "Wellington boots, glass jars, garden trowel"]]
+  };
+  const r = byId["rigor-plastic-humusidades"];
+  r.images.unshift(["yt:2L5XqU9hP6s", { es: "Rigor Plastic. Vídeo", en: "Rigor Plastic. Video" }]);
+  r.videos = [["Humusidades", "zCz8gQgcCI0"]];
+  const st = byId["styrum"];
+  st.images.unshift(["yt:W8d3GFTx8fU", { es: "Styrum. Vídeo", en: "Styrum. Video" }]);
+  st.videos = st.videos.slice(1);
+})();
+
+const INTRO = {
+  es: "Práctica procesual e instalación site-specific: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales (filtración, evaporación, riego, cristalización) y siguen activos durante la exposición.",
+  en: "Processual practice and site-specific installation: systems of water, plants and conduits that set real hydric processes in motion (filtration, evaporation, irrigation, crystallisation) and remain active during the exhibition."
+};
+
+const BIO = {
+  es: ["Un recipiente de barro sin esmaltar, enterrado junto a una planta, libera agua por capilaridad a través de sus poros atendiendo a la sed del sustrato. Así, Edu Lavrador (Sevilla, 1997), artista e investigador, centra su trabajo en la práctica procesual y la instalación site-specific: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales (filtración, evaporación, riego, cristalización) y siguen activos durante la exposición. Sus dispositivos combinan agua, vidrio, plástico, barro, metal y tecnologías de baja complejidad.",
+       "Buena parte de su investigación nace del trabajo de campo. Uno de sus casos de estudio es el cauce del Guadalmedina, en Málaga, donde una acequia rota ha formado un pequeño humedal en el que conviven caracoles, larvas acuáticas, colémbolos y aves como garzas y cigüeñuelas. Allí toma muestras de agua y suelo y registra estos organismos como indicadores de un ecosistema que la ciudad da por muerto.",
+       "Graduado en Bellas Artes por la Universidad de Sevilla y Máster en Producción Artística Interdisciplinar por la Universidad de Málaga, es doctorando en la Universidad de Murcia y cursa el Grado Superior en Cerámica Artística en la EASD San Telmo. Ha presentado las exposiciones individuales Humedad, luego cristaliza (Museo Cristo de la Sangre, Murcia, 2026) y Agua, por favor (Sala Chema Cobo, Universidad de Málaga, 2025). Con Rigor Plastic participó en Ars Electronica (Linz, 2023), y en 2024 fue seleccionado como Changemaker en Pop the Vote! (Culture Action Europe). Ha impartido talleres y charlas, y en 2026 fue profesor invitado en un máster de la Universidad de Murcia. Actualmente es artista incubado en La Casa Amarilla (Málaga).",
+       "Actualmente, su investigación doctoral estudia cómo lo hídrico se filtra en la materia y en los relatos, a escalas que van de la humedad de una pared o un charco a un cauce urbano o al propio cuerpo."],
+  en: ["An unglazed clay vessel, buried next to a plant, releases water by capillarity through its pores, attending to the thirst of the substrate. In the same way, Edu Lavrador (Seville, 1997), artist and researcher, focuses his work on processual practice and site-specific installation: systems of water, plants and conduits that set real hydric processes in motion (filtration, evaporation, irrigation, crystallisation) and remain active during the exhibition. His devices combine water, glass, plastic, clay, metal and low-complexity technologies.",
+       "Much of his research grows out of fieldwork. One of his case studies is the bed of the Guadalmedina river in Málaga, where a broken irrigation channel has formed a small wetland shared by snails, aquatic larvae, springtails and birds such as herons and black-winged stilts. There he takes water and soil samples and records these organisms as indicators of an ecosystem the city considers dead.",
+       "He holds a degree in Fine Arts from the Universidad de Sevilla and a Master's in Interdisciplinary Artistic Production from the Universidad de Málaga, is a doctoral candidate at the Universidad de Murcia and is studying Artistic Ceramics at EASD San Telmo. He has presented the solo exhibitions Humedad, luego cristaliza (Museo Cristo de la Sangre, Murcia, 2026) and Agua, por favor (Sala Chema Cobo, Universidad de Málaga, 2025). With Rigor Plastic he took part in Ars Electronica (Linz, 2023), and in 2024 he was selected as a Changemaker in Pop the Vote! (Culture Action Europe). He has given workshops and talks, and in 2026 he was a guest lecturer on a master's programme at the Universidad de Murcia. He is currently an incubated artist at La Casa Amarilla (Málaga).",
+       "His doctoral research studies how the hydric seeps into matter and into stories, at scales ranging from the damp in a wall or a puddle to an urban riverbed or the body itself."]
+};
+
+const CV = [
+  { h: { es: "Formación", en: "Education" }, items: [
+    ["2025–", { es: "Programa de Doctorado en Investigación en Artes y Humanidades. Universidad de Murcia.", en: "Doctoral Programme in Arts and Humanities Research. Universidad de Murcia." }],
+    ["2025–", { es: "Grado Superior en Técnicas Cerámicas. Escuela de Arte y Superior de Diseño San Telmo, Málaga.", en: "Higher Diploma in Ceramic Techniques. Escuela de Arte y Superior de Diseño San Telmo, Málaga." }],
+    ["2023–24", { es: "Máster en Producción Artística Interdisciplinar. Universidad de Málaga.", en: "Master's in Interdisciplinary Artistic Production. Universidad de Málaga." }],
+    ["2018", { es: "XXVI Curso de Dibujo y Escultura en Bronce. Escuela Libre de Artes Plásticas, Priego de Córdoba.", en: "26th Course in Drawing and Bronze Sculpture. Escuela Libre de Artes Plásticas, Priego de Córdoba." }],
+    ["2015–20", { es: "Grado en Bellas Artes. Universidad de Sevilla.", en: "BA in Fine Arts. Universidad de Sevilla." }]
+  ]}
+,
+  { h: { es: "Exposiciones individuales", en: "Solo exhibitions" }, items: [
+    ["2026", "<i>Humedad, luego cristaliza</i>. Sala Ángel Imbernón, Museo Cristo de la Sangre, Murcia."],
+    ["2025", { es: "<i>Agua, por favor</i>. Sala Chema Cobo, Facultad de Bellas Artes, Universidad de Málaga.", en: "<i>Agua, por favor</i>. Sala Chema Cobo, Faculty of Fine Arts, Universidad de Málaga." }]
+  ]},
+  { h: { es: "Exposiciones colectivas", en: "Group exhibitions" }, items: [
+    ["2026", { es: "<i>Estival</i>, con la obra <i>Fricciones galvánicas</i>, cocreada con Clara Basterrechea. La Casa Amarilla, Casa del Socorro, Málaga.", en: "<i>Estival</i>, with <i>Fricciones galvánicas</i>, co-created with Clara Basterrechea. La Casa Amarilla, Casa del Socorro, Málaga." }],
+    ["2025", { es: "<i>INT 24. Proyectos Máster de Producción Artística</i>, con la obra <i>Humusidades</i>. Centro Cultural María Victoria Atencia, Universidad de Málaga.", en: "<i>INT 24. Master's in Artistic Production projects</i>, with <i>Humusidades</i>. Centro Cultural María Victoria Atencia, Universidad de Málaga." }],
+    ["2025", { es: "<i>ASTER+S Art^NeuroScience</i>, con la obra <i>Inexeresis</i>. Fundación Aparejadores y COAT de Sevilla.", en: "<i>ASTER+S Art^NeuroScience</i>, with <i>Inexeresis</i>. Fundación Aparejadores and COAT, Seville." }],
+    ["2024", { es: "<i>Vértices</i>, con la obra <i>Humusidades (ensayo)</i>. RARA Residencia de Arte, Villanueva del Rosario, Málaga.", en: "<i>Vértices</i>, with <i>Humusidades (trial)</i>. RARA Residencia de Arte, Villanueva del Rosario, Málaga." }],
+    ["2024", { es: "Open Studio con el proyecto <i>L.A.T.E.</i> Facultad de Bellas Artes, Universidad de Málaga.", en: "Open Studio with the project <i>L.A.T.E.</i> Faculty of Fine Arts, Universidad de Málaga." }],
+    ["2023", { es: "<i>ASTER> Art^Science</i>, con la obra <i>Rigor Plastic</i>. Ars Electronica Festival, Linz, Austria.", en: "<i>ASTER> Art^Science</i>, with <i>Rigor Plastic</i>. Ars Electronica Festival, Linz, Austria." }],
+    ["2023", { es: "<i>Zonas de Compensação 10. InteligêncIAs aplicadas a ecologias e (dis)simulações</i>, con la obra <i>Rigor Plastic 1.2</i>. Festival Internacional Zonas de Compensação, Brasil.", en: "<i>Zonas de Compensação 10. InteligêncIAs aplicadas a ecologias e (dis)simulações</i>, with <i>Rigor Plastic 1.2</i>. Zonas de Compensação International Festival, Brazil." }],
+    ["2023", { es: "<i>ASTER+S</i>, con la obra <i>Rigor Plastic 1.0</i>. Sala de exposiciones de la Fundación Aparejadores, Sevilla.", en: "<i>ASTER+S</i>, with <i>Rigor Plastic 1.0</i>. Fundación Aparejadores exhibition space, Seville." }],
+    ["2023", { es: "<i>Retratos</i>, con la obra <i>El guardián del jardín</i>. La Salita, Gijón.", en: "<i>Retratos</i>, with <i>El guardián del jardín</i>. La Salita, Gijón." }],
+    ["2018", { es: "Exposición del XXVI Curso de Dibujo y Escultura en Bronce, con la obra <i>Grito</i> (en exposición permanente). Museo Niceto Alcalá-Zamora y Torres, Priego de Córdoba.", en: "Exhibition of the 26th Course in Drawing and Bronze Sculpture, with <i>Grito</i> (permanent display). Museo Niceto Alcalá-Zamora y Torres, Priego de Córdoba." }]
+  ]},
+  { h: { es: "Residencias", en: "Residencies" }, items: [
+    ["2026–", { es: "Artista incubado. La Casa Amarilla y Promálaga, Casa del Socorro, Málaga.", en: "Incubated artist. La Casa Amarilla and Promálaga, Casa del Socorro, Málaga." }],
+    ["2025", { es: "Laboratorio de Experimentación. Facultad de Bellas Artes, Universidad de Málaga.", en: "Laboratorio de Experimentación. Faculty of Fine Arts, Universidad de Málaga." }],
+    ["2024", "KONVENT.0, <i>The Word for World is Forest</i>. Konvent, Cal Rosal (Barcelona)."],
+    ["2024", { es: "Changemakers' Playground Camp, Pop the Vote! Culture on the Ballot. Culture Action Europe y Artivist Network, Bruselas.", en: "Changemakers' Playground Camp, Pop the Vote! Culture on the Ballot. Culture Action Europe and Artivist Network, Brussels." }]
+  ]},
+  { h: { es: "Conferencias", en: "Talks" }, items: [
+    ["2026", { es: "<i>Fuera del mercado</i>, charla como profesor invitado. Máster en Investigación y Gestión del Patrimonio Histórico-Artístico y Cultural, Universidad de Murcia.", en: "<i>Fuera del mercado</i>, talk as guest lecturer. Master's in Research and Management of Historical-Artistic and Cultural Heritage, Universidad de Murcia." }],
+    ["2026", { es: "<i>T-ejido</i>, jornadas, charlas y taller de construcción intuitiva. Pop the Vote!, Culture Action Europe, Málaga.", en: "<i>T-ejido</i>, talks and intuitive building workshop. Pop the Vote!, Culture Action Europe, Málaga." }],
+    ["2024", "<i>T-ejido</i>, webinar #enClave. REACC."],
+    ["2024", { es: "<i>LATE, Life After The Extinction</i>, presentación de proyecto. Pop the Vote!, Culture Action Europe, Bruselas.", en: "<i>LATE, Life After The Extinction</i>, project presentation. Pop the Vote!, Culture Action Europe, Brussels." }]
+  ]},
+  { h: { es: "Premios", en: "Awards" }, items: [
+    ["2018", { es: "Primer premio en la modalidad de fundición artística. XXVI Curso de Dibujo y Escultura en Bronce, Escuela Libre de Artes Plásticas, Priego de Córdoba.", en: "First prize in artistic casting. 26th Course in Drawing and Bronze Sculpture, Escuela Libre de Artes Plásticas, Priego de Córdoba." }]
+  ]}
+];
+
+const TEXTS = [];
+
+const ESCRITOS = [
+  {
+    id: "bajo-mis-pies",
+    title: { es: "[Bajo mis pies operan…]", en: "[Beneath my feet…]" },
+    related: "rigor-plastic-humusidades",
+    poem: false,
+    es: `Bajo mis pies operan los principios sincréticos del suelo, un gran archivo aparentemente desordenado. Entierro mis manos en la humedad y palpo vestigios: minerales; rocas, polvo y vidrios; también orgánicos: raíces, lodo y trozos de plástico.
+
+La temporalidad humana se disuelve en y con la geológica, una amalgama artificiosa se crea. Pliegues que se solapan gracias al limo y el tiempo.
+
+Entierro mi oreja en el lodo, un glup sordo y asimétrico. El susurro del agua, el susurro del tren que viene, mi propio susurro. A lo lejos una conversación química. Escucho una charla ajena, los micelios se piden y se ofrecen, no tengo voz ni voto, solo atención. Trato de desgranar una gramática enrevesada, una estructura infinita pero precisa, un eco sordo que aparece, desaparece y da toda la vuelta hasta que vuelve, la boca me sabe a calcio y fósforo.
+
+Humus, humo, humano, humildad, humillar, humor, humanidad, humusidad. No somos posthumanos, ni habitamos la humanidad, somos compost y como tal somos humusidad.
+
+Cultivamos. Criamos. Cuidamos. Comemos. Cagamos. Cultivamos. Criamos. Cuidamos. Comemos. Cagamos...
+
+Comemos el suelo. La boca me sabe a calcio y fósforo.`,
+    en: `Beneath my feet the syncretic principles of the soil are at work, a great, seemingly disordered archive. I bury my hands in the damp and feel for vestiges: minerals; rocks, dust and glass; organic things too: roots, mud and pieces of plastic.
+
+Human time dissolves in and with geological time, a contrived amalgam takes shape. Folds that overlap thanks to silt and time.
+
+I bury my ear in the mud, a dull, lopsided glup. The whisper of the water, the whisper of the approaching train, my own whisper. In the distance, a chemical conversation. I overhear a conversation that is not mine, the mycelia ask of each other and offer themselves, I have no voice and no vote, only attention. I try to untangle a convoluted grammar, an infinite but precise structure, a dull echo that appears, disappears and goes all the way round until it comes back, my mouth tastes of calcium and phosphorus.
+
+Humus, smoke, human, humility, humiliate, humour, humanity, humusity. We are not posthuman, nor do we inhabit humanity, we are compost and as such we are humusity.
+
+We cultivate. We breed. We care. We consume. We crap. We cultivate. We breed. We care. We consume. We crap...
+
+We eat the soil. My mouth tastes of calcium and phosphorus.`
+  },
+  {
+    id: "mirar-con-o-sin",
+    title: { es: "[Es mirar con o mirar sin…]", en: "[It is looking with or looking without…]" },
+    related: "agua-por-favor",
+    poem: false,
+    es: `Es mirar con o mirar sin. Pero siempre mirar: más allá, dentro. Remirar o revisar.
+
+Cuando miramos con, lo hacemos desde dentro: con los ojos, con las manos; percibiendo ondas, ya sean vibraciones, fotones o sonido. Cuando miramos desde afuera, miramos con el de al lado, con los de al lado; miramos al de enfrente, miramos al de arriba. El de arriba no nos mira; tal vez nos vea, pero no nos mira y, desde luego, no mira con nosotros ni para nosotros.
+
+También podemos mirar por: cuando cuidamos de otro —ese que-quien, lo viviente y lo no viviente— miramos por este. Cuando hacemos de Lázaro, también vemos por el otro. Cuidar de es, por tanto, ayudar al que-quien a desenvolverse; tal vez más detalladamente. ¿Mirar es con detalle, no?
+
+Ver es una capacidad; mirar, una decisión. Hay quien mira para otro lado, y quien lo hace por encima del hombro: es una decisión.
+
+El agua brota desde abajo hacia arriba, pero cae de arriba hacia abajo. Igual que se ve desde arriba hacia abajo, pero no se mira. Desde abajo hacia arriba se ve, se mira, se brota; pero no se cae. Las gotas lo son porque caen poco a poco, dosificadamente. Pero desde abajo el agua brota: emana a borbotones, no gotea. Abajo se acumula, se filtra y se vuelve a acumular; arriba se escapa y se diluye, como ese ver sin mirar.
+
+Me miró la última gota mientras caía; ya no había más. Yo no la vi. Se creyó infinita, pero no: lo era en sí misma, no fuera. Me miró la última gota mientras se desparramaba por el suelo; yo no la vi. Se acumuló un instante: no se filtró, no le dio tiempo. Me miró la última gota mientras se evaporaba; ya no había más. Yo no la vi. El último mililitro de humedad impregnó el ambiente árido: la sentí.
+
+En otro lugar el agua brota a borbotones; no cesa. Todos lo ven todo el rato, todo el tiempo, en todas partes. Nadie los mira.`,
+    en: `It is looking with or looking without. But always looking: beyond, within. Looking again, or looking over.
+
+When we look with, we do so from within: with our eyes, with our hands; perceiving waves, whether vibrations, photons or sound. When we look from outside, we look with the one beside us, with those beside us; we look at the one in front, we look at the one above. The one above does not look at us; perhaps it sees us, but it does not look at us and, certainly, it does not look with us or for us.
+
+We can also look out for: when we care for another —that which-who, the living and the non-living— we look out for it. When we take on the figure of a Lazarus, we also see for the other. To care for is, then, to help the which-who find its way; perhaps in more detail. Looking means looking in detail, doesn't it?
+
+Seeing is an ability; looking, a decision. There are those who look the other way, and those who look down on others: it is a decision.
+
+Water springs from below upwards, but falls from above downwards. Just as one sees from above downwards, but does not look. From below upwards one sees, one looks, one springs; but one does not fall. Drops are drops because they fall little by little, in measured doses. But from below, water springs: it gushes forth, it does not drip. Below it gathers, filters and gathers again; above it escapes and dissolves, like that seeing without looking.
+
+The last drop looked at me as it fell; there were no more. I did not see it. It thought itself infinite, but no: it was so in itself, not outside. The last drop looked at me as it spread across the floor; I did not see it. It gathered for an instant: it did not filter, there was no time. The last drop looked at me as it evaporated; there were no more. I did not see it. The last millilitre of humidity permeated the arid air: I felt it.
+
+Elsewhere water gushes forth; it does not stop. Everyone sees it all the while, all the time, everywhere. No one looks at them.`
+  },
+  {
+    id: "sin-quienes",
+    title: { es: "[¿Se verá el día en el que no habrá dónde, ni quiénes?…]", en: "[Will we see the day when there is no where, nor whos?…]" },
+    related: null,
+    poem: true,
+    es: `¿Se verá el día en el que no habrá dónde, ni quiénes?
+Como el árbol que cae sin que haya testigos y se cuestiona si es real o no.
+Un quiénes, un dónde y un qué serán,
+Pero sin quiénes.
+Lo sublime de los atardeceres contaminados de Turner
+Quedará huérfano de quiénes que lo romanticen y estudien.
+Habrá para qués y porqués pero, ¿para quiénes?
+¿Sirve de algo preguntarse a sabiendas de que no hay quiénes que busquen respuesta?
+Como un grito bajo el agua.
+Inútil para los quiénes pero sensible para los otros-que-quiénes.
+Una mirada escruta a los que podrían ser los nuevos quiénes.
+¿De dónde?
+¿Para qué?
+Tratar de comprender en soledad, sin un para quién.
+¿Comer?
+¿Beber?
+¿Amar?
+¿Con quiénes?
+Parece que, aunque no haya un quiénes,
+Estaremos subyugados al impulso del para qué.
+De definición brumosa pero ejecución ineludible.
+Como un naufragio a la deriva,
+Sin un quiénes pero con su propio para qué,
+Irracional pero inexcusable.
+¿Es el vestigio tal sin un para quiénes?
+Quizás el porqué sea lo suficientemente sólido
+Como para liberarlo del compromiso del para quiénes.
+Los otros-que-quiénes se abren paso.
+No les preocupa el porqué para hacer su camino entre las huellas de los quiénes.
+Tal vez hayan encontrado al fin a estos vestigios un para qué.`,
+    en: `Will we see the day when there is no where, nor whos?
+Like the tree that falls with no witnesses, and one wonders whether it is real or not.
+A who, a where and a what there will be,
+But no whos.
+The sublime of Turner's polluted sunsets
+Will be left orphaned of whos to romanticise and study it.
+There will be what-fors and whys but, for whom?
+Is there any point in asking, knowing there are no whos to seek an answer?
+Like a scream underwater.
+Useless to the whos but perceptible to the others-than-whos.
+A gaze scrutinises those who could be the new whos.
+From where?
+What for?
+Trying to understand alone, with no for-whom.
+To eat?
+To drink?
+To love?
+With whom?
+It seems that, even if there are no whos,
+We will be subjugated to the impulse of the what-for.
+Hazy in definition but inescapable in execution.
+Like a shipwreck adrift,
+With no whos but with its own what-for,
+Irrational but inexcusable.
+Is a vestige a vestige without a for-whom?
+Perhaps the why is solid enough
+To free it from the commitment of the for-whom.
+The others-than-whos make their way through.
+They do not care about the why to make their path among the footprints of the whos.
+Perhaps they have at last found a what-for for these vestiges.`
+  }
+];
+
+const CONTACT = { email: "edujlavrador@gmail.com", uni: "ej.lavradorjimenez@um.es", ig: "edulavrador" };
+
+/* =============== MOTOR =============== */
+let lang = "es";
+try { const s = localStorage.getItem("lang"); if (s === "en" || s === "es") lang = s; } catch (e) {}
+const T = v => (v && typeof v === "object" && !Array.isArray(v)) ? v[lang] : v;
+const view = document.getElementById("view");
+const img = (k, alt, lazy = true) => `<img src="img/${k}.jpg" alt="${(alt || "").replace(/"/g, "&quot;").replace(/<[^>]+>/g, "")}"${lazy ? ' loading="lazy"' : ""} decoding="async">`;
+
+function menu(active) {
+  const items = [["proyectos", UI[lang].projects], ["bio", UI[lang].bio], ["cv", UI[lang].cv], ["textos", UI[lang].texts], ["contacto", UI[lang].contact]];
+  document.getElementById("menu").innerHTML =
+    `<a href="#proyectos"${active === "home" ? ' aria-current="page"' : ""}>Edu Lavrador</a><span aria-hidden="true">&nbsp;</span>` +
+    items.slice(1).map(([id, l]) => `<a href="#${id}"${active === id ? ' aria-current="page"' : ""}>${l}</a>`).join("");
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === lang));
+  document.documentElement.lang = lang;
+  document.getElementById("foot").textContent = UI[lang].place;
+}
+
+function carousel(items, opts = {}) {
+  const id = "c" + Math.random().toString(36).slice(2, 7);
+  const figs = items.map(([k, cap], i) => k.startsWith("yt:")
+    ? `<figure class="vid"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${k.slice(3)}" aria-label="${UI[lang].play}: ${T(cap) || ""}"><span>${T(cap) || ""}</span></button></div></figure>`
+    : `<figure>${img(k, T(cap) || "", i > 1)}${opts.captions !== false && cap ? `<figcaption>${T(cap)}</figcaption>` : ""}</figure>`).join("");
+  return `<div class="car" id="${id}" style="${opts.h ? `--h:${opts.h};` : ""}${opts.hm ? `--hm:${opts.hm};` : ""}">
+    <div class="car-track" tabindex="0" aria-label="Imágenes">${figs}</div>
+    <div class="car-ui"><button type="button" data-d="-1">${UI[lang].prev}</button><span class="count">1 / ${items.length}</span><button type="button" data-d="1">${UI[lang].next}</button></div>
+  </div>`;
+}
+function wireCarousels(auto) {
+  document.querySelectorAll(".car").forEach(c => {
+    const tr = c.querySelector(".car-track"), figs = [...tr.children], count = c.querySelector(".count");
+    let i = 0;
+    const go = n => { i = (n + figs.length) % figs.length; tr.scrollTo({ left: figs[i].offsetLeft - tr.offsetLeft, behavior: "smooth" }); };
+    c.querySelectorAll("button[data-d]").forEach(b => b.addEventListener("click", () => { go(i + +b.dataset.d); stop(); }));
+    tr.addEventListener("scroll", () => {
+      const x = tr.scrollLeft; let best = 0, d = 1e9;
+      figs.forEach((f, k) => { const dd = Math.abs(f.offsetLeft - tr.offsetLeft - x); if (dd < d) { d = dd; best = k; } });
+      i = best; count.textContent = `${i + 1} / ${figs.length}`;
+    }, { passive: true });
+    let t = null; const stop = () => { clearInterval(t); t = null; };
+    if (auto && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      t = setInterval(() => go(i + 1), 5000);
+      ["pointerdown", "wheel", "touchstart", "keydown"].forEach(ev => tr.addEventListener(ev, stop, { passive: true }));
+    }
+  });
+}
+
+function pageHome() {
+  menu("home");
+  view.innerHTML = carousel(HERO, { h: "70vh", hm: "56vh" }) +
+    `<div class="feed">` + PROJECTS.map((p, i) => `${i === 0 || PROJECTS[i - 1].group !== p.group ? `<h2 class="group">${p.group === "obra" ? UI[lang].works : UI[lang].lines}</h2>` : ""}
+      <article class="entry ${p.size || ""}">
+        <div class="meta">
+          <a href="#${p.id}">${T(p.title)}</a>
+          <span>${T(p.kind)}</span>
+          <span>${p.where}</span>
+          <span class="yr">${p.year}</span>
+        </div>
+        <a class="shot" href="#${p.id}" aria-label="${T(p.title)}">${img(p.cover, T(p.title))}</a>
+      </article>`).join("") + `</div>`;
+  wireCarousels(true);
+}
+
+function pageProject(p) {
+  menu("proyectos");
+  const i = PROJECTS.indexOf(p), nx = PROJECTS[(i + 1) % PROJECTS.length];
+  const quote = p.quote ? `<blockquote class="quote">${p.quote[lang][0]}<cite>${p.quote[lang][1]}</cite></blockquote>` : "";
+  const vids = p.videos ? `<div class="vids">${p.videos.map(([n0, id]) => { const n = T(n0); return `<div class="yt"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${id}" aria-label="${UI[lang].play}: ${n}"><span>${n}</span></button></div><small><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube</a></small></div>`; }).join("")}</div>` : "";
+  const loop = p.loop ? `<figure class="loop"><video poster="img/${p.loop.src}.jpg" autoplay muted loop playsinline preload="metadata"><source src="img/${p.loop.src}.mp4" type="video/mp4"><source src="img/${p.loop.src}.webm" type="video/webm"></video><figcaption>${p.loop.cap[lang]}</figcaption></figure>` : "";
+  const rel = ESCRITOS.find(e => e.related === p.id);
+  const relBox = rel ? `<div class="box"><h2>${UI[lang].text}</h2><a href="#${rel.id}">${rel.title[lang]}</a></div>` : "";
+  const field = p.field ? `<div class="box"><h2>${UI[lang].fieldbook}</h2><ul class="field">${p.field[lang].map(([k, v]) => `<li><b>${k}</b><span>${v}</span></li>`).join("")}</ul></div>` : "";
+  const cat = p.catalog ? `<div class="box"><h2>${UI[lang].catalog}</h2><span class="soft">${UI[lang].catalogSoon}</span></div>` : "";
+  view.innerHTML = `
+    <div class="phead">
+      <h1>${T(p.title)}</h1>
+      <div class="ficha">${p.ficha[lang].map(l => `<span>${l}</span>`).join("")}</div>
+    </div>
+    ${carousel(p.images, { h: "66vh", hm: "48vh" })}
+    <div class="pbody">
+      <div class="side">${quote}${field}${loop}${relBox}${cat}</div>
+      <div><div class="prose">${p.text[lang].map(t => `<p>${t}</p>`).join("")}</div>${vids}</div>
+    </div>
+    <div class="next"><a href="#${nx.id}">${UI[lang].nextProject}: ${T(nx.title)}</a></div>`;
+  wireCarousels(false);
+  view.querySelectorAll(".yt-play").forEach(b => b.addEventListener("click", () => {
+    const f = document.createElement("iframe");
+    f.src = `https://www.youtube-nocookie.com/embed/${b.dataset.yt}?autoplay=1&rel=0`;
+    f.title = b.textContent.trim(); f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
+    b.replaceWith(f);
+  }));
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) view.querySelectorAll(".loop video").forEach(v => { v.removeAttribute("autoplay"); v.pause(); v.controls = true; });
+}
+
+function list(sections) {
+  return `<div class="cv">` + sections.map(s => `<section><h2>${T(s.h)}</h2><ul>${s.items.map(([y, t]) => `<li><b>${y}</b><span>${T(t)}</span></li>`).join("")}</ul></section>`).join("") + `</div>`;
+}
+function pageText(id) {
+  menu(id);
+  let body = "";
+  if (id === "bio") body = `<div class="prose">${BIO[lang].map(t => `<p>${t}</p>`).join("")}</div>`;
+  if (id === "cv") body = list(CV);
+  if (id === "textos") body = `<div class="big"><h2 class="sub">${UI[lang].writings}</h2><ul class="esc-list">${ESCRITOS.map(e => `<li><a href="#${e.id}">${e.title[lang]}</a></li>`).join("")}</ul>${TEXTS.length ? list(TEXTS) : ""}</div>`;
+  if (id === "contacto") body = `<div class="big contact"><p><a href="mailto:${CONTACT.email}">${CONTACT.email}</a><br><a href="mailto:${CONTACT.uni}">${CONTACT.uni}</a> <span style="opacity:.7">(${lang === "es" ? "Universidad de Murcia" : "University of Murcia"})</span></p><p><a href="https://www.instagram.com/${CONTACT.ig}/" target="_blank" rel="noopener">Instagram @${CONTACT.ig}</a></p><p>Málaga</p></div>`;
+  const title = { bio: UI[lang].bio, cv: UI[lang].cv, textos: UI[lang].texts, contacto: UI[lang].contact }[id];
+  view.innerHTML = `<div class="page"><h1>${title}</h1>${body}</div>`;
+}
+
+function pageEscrito(e) {
+  menu("textos");
+  const note = UI[lang].origNote ? `<p class="note">${UI[lang].origNote}</p>` : "";
+  view.innerHTML = `<div class="page"><h1>${UI[lang].writings}</h1><div><h2 style="font-size:15px;margin:0 0 24px;color:var(--mud)">${e.title[lang]}</h2><div class="escrito${e.poem ? " poem" : ""}">${e[lang]}</div>${note}</div></div><div class="next"><a href="#textos">${UI[lang].texts}</a></div>`;
+}
+
+function route() {
+  const h = location.hash.slice(1);
+  const p = PROJECTS.find(x => x.id === h);
+  const es = ESCRITOS.find(x => x.id === h);
+  if (es) pageEscrito(es);
+  else if (p) pageProject(p);
+  else if (["bio", "cv", "textos", "contacto"].includes(h)) pageText(h);
+  else pageHome();
+  scrollTo(0, 0);
+}
+document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => {
+  lang = b.dataset.l;
+  try { localStorage.setItem("lang", lang); } catch (e) {}
+  const y = scrollY; route(); scrollTo(0, y);
+}));
+addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
