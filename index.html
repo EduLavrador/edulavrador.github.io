@@ -759,42 +759,41 @@ function pageHome() {
   }));
 }
 
-/* Ondas de agua: una piedra cae en la imagen y las ondas se desbordan por toda la pantalla */
+/* Ondas de agua: una piedra cae en la imagen y las ondas se desbordan por toda la pantalla.
+   La simulación es más grande que la pantalla: las ondas salen y se apagan fuera, sin rebotar. */
 let waterBusy = false;
 function waterRipple(fig, im, px, py) {
   try {
     if (waterBusy) return true;
     const vw = innerWidth, vh = innerHeight, ir = im.getBoundingClientRect();
-    const S = 2, W = Math.ceil(vw / S), H = Math.ceil(vh / S);
-    // imagen a la resolución de la simulación
+    const S = vw < 760 ? 1.5 : 2, VW = Math.ceil(vw / S), VH = Math.ceil(vh / S), P = 70, W = VW + 2 * P, H = VH + 2 * P;
     const ix = Math.round(ir.left / S), iy = Math.round(ir.top / S), iw = Math.max(1, Math.round(ir.width / S)), ih = Math.max(1, Math.round(ir.height / S));
     const src = document.createElement("canvas"); src.width = iw; src.height = ih;
     const sc = src.getContext("2d"), nw = im.naturalWidth, nh = im.naturalHeight, k = Math.max(iw / nw, ih / nh);
+    sc.imageSmoothingQuality = "high";
     sc.drawImage(im, (iw - nw * k) / 2, (ih - nh * k) / 2, nw * k, nh * k);
     const base = sc.getImageData(0, 0, iw, ih).data;
     waterBusy = true;
-    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const cv = document.createElement("canvas"); cv.width = VW; cv.height = VH;
     cv.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:50;transition:opacity 1.2s ease;";
     document.body.appendChild(cv);
-    const ctx = cv.getContext("2d"), out = ctx.createImageData(W, H), o = out.data;
+    const ctx = cv.getContext("2d"), out = ctx.createImageData(VW, VH), o = out.data;
     let a = new Float32Array(W * H), b = new Float32Array(W * H);
-    // borde absorbente: las ondas se apagan al llegar al límite de la pantalla en vez de rebotar
-    const damp = new Float32Array(W * H), M = 40;
+    const damp = new Float32Array(W * H);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      const d = Math.min(x, y, W - 1 - x, H - 1 - y);
-      damp[y * W + x] = d >= M ? 0.99 : 0.99 * (0.82 + 0.18 * (d / M));
+      const d = Math.min(x, y, W - 1 - x, H - 1 - y), t = d >= P ? 0 : (P - d) / P;
+      damp[y * W + x] = 0.99 * (1 - 0.3 * t * t);
     }
-    const cx = Math.round(px / S), cy = Math.round(py / S), R = 6;
+    const cx = Math.round(px / S) + P, cy = Math.round(py / S) + P, R = 6;
     for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
       const x = cx + i, y = cy + j, d = Math.sqrt(i * i + j * j);
       if (x > 1 && y > 1 && x < W - 2 && y < H - 2 && d <= R) a[y * W + x] += 1300 * Math.cos((d / R) * Math.PI / 2);
     }
     const startHash = location.hash, t0 = performance.now();
-    let imgOn = true;
+    let imgOn = true, fading = false;
     const offImg = () => { imgOn = false; };
     ["scroll", "wheel", "touchmove"].forEach(ev => addEventListener(ev, offImg, { passive: true, capture: true }));
     setTimeout(() => ["scroll", "wheel", "touchmove"].forEach(ev => removeEventListener(ev, offImg, { capture: true })), 6000);
-    let fading = false;
     const frame = t => {
       if (!cv.isConnected) { waterBusy = false; return; }
       for (let n = 0; n < 3; n++) {
@@ -806,11 +805,10 @@ function waterRipple(fig, im, px, py) {
         const r2 = im.getBoundingClientRect();
         if (location.hash !== startHash || !im.isConnected || Math.abs(r2.left - ir.left) > 1 || Math.abs(r2.top - ir.top) > 1) imgOn = false;
       }
-      const showImg = imgOn;
-      for (let y = 1; y < H - 1; y++) for (let x = 1, i = y * W + 1; x < W - 1; x++, i++) {
-        const dx = a[i - 1] - a[i + 1], dy = a[i - W] - a[i + W], q = i * 4, l = (dx + dy) * 0.09;
-        const inImg = showImg && x >= ix && x < ix + iw && y >= iy && y < iy + ih;
-        if (inImg) {
+      for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
+        const i = (y + P) * W + x + P, q = (y * VW + x) * 4;
+        const dx = a[i - 1] - a[i + 1], dy = a[i - W] - a[i + W], l = (dx + dy) * 0.09;
+        if (imgOn && x >= ix && x < ix + iw && y >= iy && y < iy + ih) {
           let sx = x - ix + (dx * 0.05 | 0), sy = y - iy + (dy * 0.05 | 0);
           sx = sx < 0 ? 0 : sx >= iw ? iw - 1 : sx; sy = sy < 0 ? 0 : sy >= ih ? ih - 1 : sy;
           const si = (sy * iw + sx) * 4;
@@ -818,8 +816,7 @@ function waterRipple(fig, im, px, py) {
         } else {
           const al = Math.abs(l);
           if (al < 1.2) { o[q + 3] = 0; continue; }
-          if (l > 0) { o[q] = 255; o[q + 1] = 255; o[q + 2] = 250; }
-          else { o[q] = 70; o[q + 1] = 64; o[q + 2] = 20; }
+          if (l > 0) { o[q] = 255; o[q + 1] = 255; o[q + 2] = 250; } else { o[q] = 70; o[q + 1] = 64; o[q + 2] = 20; }
           o[q + 3] = al * 5 > 110 ? 110 : al * 5;
         }
       }
