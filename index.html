@@ -446,8 +446,8 @@ const PROJECTS = [
   },
   {
     id: "en-desarrollo-axarquia",
-    title: { es: "Proyecto en desarrollo", en: "Work in progress" },
-    kind: { es: "Riego por barro poroso. Ensayos cerámicos", en: "Porous clay irrigation. Ceramic trials" },
+    title: { es: "Riego por olla de barro", en: "Clay pot irrigation" },
+    kind: null,
     where: "La Axarquía, Málaga",
     year: "2026",
     cover: "axarquia-vasija",
@@ -800,7 +800,7 @@ function pageHome() {
       <article class="entry ${p.size || ""}">
         <div class="meta">
           <a href="#${p.id}">${T(p.title)}</a>
-          <span>${T(p.kind)}</span>
+          ${p.kind ? `<span>${T(p.kind)}</span>` : ""}
           <span>${p.where}</span>
           <span class="yr">${p.year}</span>
         </div>
