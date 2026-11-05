@@ -1011,6 +1011,27 @@ addEventListener("hashchange", route);
     run();
   }
   let NB = [], NW = [0.08, 0.08, 0.08, 0.08, 0.045, 0.045, 0.045, 0.045];
+  // hacia dónde está "abajo": en el móvil lo dice el acelerómetro; sin sensor, hacia abajo de la pantalla
+  let GX = 0, GY = 1, GM = 1, sensed = false, flip = 0, asked = false;
+  function onMotion(e) {
+    const a = e.accelerationIncludingGravity; if (!a || a.x == null) return;
+    let ax = a.x, ay = a.y;
+    if (!flip) { if (Math.abs(ay) > 3) flip = ay > 0 ? 1 : -1; else return; }   // unos navegadores dan el signo al revés: se calibra con el móvil en la mano
+    ax *= flip; ay *= flip;
+    let gx = -ax, gy = ay;                                                     // de la reacción del sensor al "abajo" en la pantalla
+    const ang = -((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI / 180;
+    const rx = gx * Math.cos(ang) - gy * Math.sin(ang), ry = gx * Math.sin(ang) + gy * Math.cos(ang);
+    const mag = Math.min(1, Math.hypot(rx, ry) / 9.81);
+    const k = sensed ? 0.15 : 1; sensed = true;                                // suavizado
+    const nx = rx / (Math.hypot(rx, ry) || 1), ny = ry / (Math.hypot(rx, ry) || 1);
+    GX += (nx - GX) * k; GY += (ny - GY) * k; GM += (mag - GM) * k;
+    const n = Math.hypot(GX, GY) || 1; GX /= n; GY /= n;
+  }
+  addEventListener("devicemotion", onMotion);
+  function askMotion() {                                                       // iPhone: pide permiso al primer toque
+    if (asked) return; asked = true;
+    if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === "function") DeviceMotionEvent.requestPermission().catch(() => {});
+  }
   function step() {
     NB = [-1, 1, -GW, GW, -GW - 1, -GW + 1, GW - 1, GW + 1];
     const X0 = Math.max(1, x0 - 1), Y0 = Math.max(1, y0 - 1), X1 = Math.min(GW - 2, x1 + 1), Y1 = Math.min(GH - 2, y1 + 1);
@@ -1023,10 +1044,16 @@ addEventListener("hashchange", route);
         const f = d * NW[q] * por[j] * (0.35 + Math.random() * 0.9) * (v > 0.12 ? 1 : 0.35); m[i] -= f; m[j] += f; moved += f; if (f > 0.004) lw[j] = T;
       }
       // gravedad: lo que está muy mojado escurre hacia abajo, sobre todo por las vetas de la pared
-      if (v > 0.32) {
-        const j = i + GW, f = (v - 0.32) * (0.03 + 0.32 * vet[i]) * (0.4 + por[j]); m[i] -= f; m[j] += f; moved += f; fl[j] += f; if (f > 0.004) lw[j] = T;
-        // en el borde bajo de una zona saturada, a veces se suelta una gota que baja haciendo un reguero
-        if (v > 0.75 && m[j + GW] < 0.15 && drips.length < 40 && Math.random() < 0.004 * (0.3 + vet[i])) { m[i] -= 0.35; drips.push({ x: x + 0.5, y: y + 1, w: 0.35 + v * 0.3 }); }
+      if (v > 0.32 && GM > 0.08) {
+        const F = (v - 0.32) * (0.03 + 0.32 * vet[i]) * GM;
+        const sx = GX > 0 ? 1 : -1, sy = GY > 0 ? GW : -GW, wx = Math.abs(GX), wy = Math.abs(GY);
+        const jx = i + sx, jy = i + sy;
+        const fx = F * wx * (0.4 + por[jx]), fy = F * wy * (0.4 + por[jy]);
+        m[i] -= fx + fy; m[jx] += fx; m[jy] += fy; moved += fx + fy; fl[jx] += fx; fl[jy] += fy;
+        if (fx > 0.004) lw[jx] = T; if (fy > 0.004) lw[jy] = T;
+        // en el borde "bajo" de una zona saturada, a veces se suelta una gota que corre en la dirección de la gravedad
+        const ahead = Math.round(y + GY * 2) * GW + Math.round(x + GX * 2);
+        if (v > 0.75 && m[ahead] < 0.15 && drips.length < 40 && Math.random() < 0.004 * (0.3 + vet[i]) * GM) { m[i] -= 0.35; drips.push({ x: x + 0.5 + GX, y: y + 0.5 + GY, w: 0.35 + v * 0.3 }); }
         if (y + 1 > y1) y1 = y + 1;
       }
     }
@@ -1095,9 +1122,10 @@ addEventListener("hashchange", route);
   function drip() {
     for (let k = drips.length - 1; k >= 0; k--) {
       const d = drips[k];
-      d.y += 0.6 + Math.random() * 0.5; d.x += (vn(d.x, d.y, 4, 11) - 0.5) * 0.5;
+      const sp = (0.6 + Math.random() * 0.5) * Math.max(0.3, GM), wob = (vn(d.x, d.y, 4, 11) - 0.5) * 0.5;
+      d.x += GX * sp - GY * wob; d.y += GY * sp + GX * wob;
       const x = Math.round(d.x), y = Math.round(d.y);
-      if (x < 1 || x >= GW - 1 || y >= GH - 1 || d.w <= 0.02) { drips.splice(k, 1); continue; }
+      if (x < 1 || y < 1 || x >= GW - 1 || y >= GH - 1 || d.w <= 0.02) { drips.splice(k, 1); continue; }
       const i = y * GW + x, q = Math.min(d.w, 0.05 + 0.04 * por[i]);
       m[i] += q; d.w -= q; lw[i] = T; fl[i] += q; grow(x, y);
       if (m[i] < 0.5) m[i - 1] += q * 0.25, m[i + 1] += q * 0.25;   // el reguero se ensancha un poco
@@ -1128,6 +1156,7 @@ addEventListener("hashchange", route);
   document.addEventListener("click", e => {
     if (e.target.closest(inert)) return;
     if (String(getSelection ? getSelection() : "").length) return;
+    askMotion();
     if (bugs.length) poke(e.pageX, e.pageY);
     wet(e.pageX, e.pageY);
   });
