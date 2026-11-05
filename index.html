@@ -26,7 +26,7 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--paper); color: var(--ink); }
+html, body { margin: 0; background: var(--paper); color: var(--ink); overflow-x: clip; }
 body { font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
 a { color: var(--mud); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover { text-decoration-style: wavy; text-decoration-thickness: 1px; text-underline-offset: 4px; }
@@ -961,7 +961,8 @@ addEventListener("hashchange", route);
     return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
   }
   function alloc() {
-    const w = Math.ceil(document.documentElement.scrollWidth / C), hh = Math.ceil(Math.max(document.documentElement.scrollHeight, innerHeight) / C);
+    const wr = document.querySelector(".wrap");                                   // medir el contenido, no la propia capa de humedad
+    const w = Math.ceil(document.documentElement.clientWidth / C), hh = Math.ceil(Math.max(wr ? wr.offsetTop + wr.offsetHeight + 24 : 0, innerHeight) / C);
     if (w === GW && hh === GH) return;
     const nl = new Float32Array(w * hh), nf = new Float32Array(w * hh), nsa = new Float32Array(w * hh), nv = new Float32Array(w * hh), no = new Float32Array(w * hh), nm = new Float32Array(w * hh), nw = new Float32Array(w * hh), ng = new Float32Array(w * hh), np = new Float32Array(w * hh), ns = new Float32Array(w * hh);
     for (let y = 0; y < hh; y++) for (let x = 0; x < w; x++) {
