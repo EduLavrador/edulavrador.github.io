@@ -50,6 +50,11 @@ img { max-width: 100%; display: block; }
 .car figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; display: grid; gap: 8px; }
 .car img { height: var(--h, 62vh); width: auto; max-width: none; object-fit: cover; background: var(--mud-soft); }
 .car figcaption { font-family: var(--mono); font-size: 12px; line-height: 1.45; color: var(--ink); opacity: 0.75; max-width: 46ch; }
+.car figure.go { cursor: pointer; position: relative; overflow: hidden; }
+.ripple { position: absolute; width: 0; height: 0; transform: translate(-50%, -50%); border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9); box-shadow: 0 0 6px rgba(255,255,255,0.35); pointer-events: none; opacity: 0; animation: ripple 1.2s cubic-bezier(.2,.6,.3,1) forwards; }
+.ripple.r2 { animation-delay: 0.14s; }
+.ripple.r3 { animation-delay: 0.28s; border-width: 1px; }
+@keyframes ripple { 0% { width: 0; height: 0; opacity: 0.95; } 100% { width: 360px; height: 360px; opacity: 0; } }
 .car-ui { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--mud); }
 .car-ui button { background: none; border: 1px solid var(--mud); color: var(--mud); font: inherit; padding: 4px 10px; cursor: pointer; }
 .car-ui button:hover { background: var(--mud); color: var(--paper); }
@@ -160,15 +165,15 @@ const UI = {
 };
 
 const HERO = [
-  ["fricciones-cono", { es: "Fricciones galvánicas, 2026", en: "Fricciones galvánicas, 2026" }],
-  ["portada-goteo", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }],
-  ["agua-caracol", { es: "Agua, por favor, 2025", en: "Agua, por favor, 2025" }],
-  ["humedad-interior", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }],
-  ["guad-humedal", { es: "Guadalmedina. Trabajo de campo, 2025", en: "Guadalmedina. Fieldwork, 2025" }],
-  ["axarquia-vasija", { es: "Proyecto en desarrollo. La Axarquía, 2026", en: "Work in progress. La Axarquía, 2026" }],
-  ["agua-punta", { es: "Agua, por favor, 2025", en: "Agua, por favor, 2025" }],
-  ["humus-noche", { es: "Humusidades, 2025", en: "Humusidades, 2025" }],
-  ["humedad-conductos", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }]
+  ["fricciones-cono", { es: "Fricciones galvánicas, 2026", en: "Fricciones galvánicas, 2026" }, "fricciones-galvanicas"],
+  ["portada-goteo", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }, "humedad-luego-cristaliza"],
+  ["agua-caracol", { es: "Agua, por favor, 2025", en: "Agua, por favor, 2025" }, "agua-por-favor"],
+  ["humedad-interior", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }, "humedad-luego-cristaliza"],
+  ["guad-humedal", { es: "Guadalmedina. Trabajo de campo, 2025", en: "Guadalmedina. Fieldwork, 2025" }, "guadalmedina"],
+  ["axarquia-vasija", { es: "Proyecto en desarrollo. La Axarquía, 2026", en: "Work in progress. La Axarquía, 2026" }, "en-desarrollo-axarquia"],
+  ["agua-punta", { es: "Agua, por favor, 2025", en: "Agua, por favor, 2025" }, "agua-por-favor"],
+  ["humus-noche", { es: "Humusidades, 2025", en: "Humusidades, 2025" }, "rigor-plastic-humusidades"],
+  ["humedad-conductos", { es: "Humedad, luego cristaliza, 2026", en: "Humedad, luego cristaliza, 2026" }, "humedad-luego-cristaliza"]
 ];
 
 const PROJECTS = [
@@ -448,11 +453,11 @@ const INTRO = {
 };
 
 const BIO = {
-  es: ["Un recipiente de barro sin esmaltar, enterrado junto a una planta, libera agua por capilaridad a través de sus poros atendiendo a la sed del sustrato. Así, Edu Lavrador (Sevilla, 1997), artista e investigador, centra su trabajo en la práctica procesual y la instalación site-specific: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales (filtración, evaporación, riego, cristalización) y siguen activos durante la exposición. Sus dispositivos combinan agua, vidrio, plástico, barro, metal y tecnologías de baja complejidad.",
+  es: ["Edu Lavrador (Sevilla, 1997), artista e investigador, centra su trabajo en la práctica procesual y la instalación site-specific: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales (filtración, evaporación, riego, cristalización) y siguen activos durante la exposición. Sus dispositivos combinan agua, vidrio, plástico, barro, metal y tecnologías de baja complejidad.",
        "Buena parte de su investigación nace del trabajo de campo. Uno de sus casos de estudio es el cauce del Guadalmedina, en Málaga, donde una acequia rota ha formado un pequeño humedal en el que conviven caracoles, larvas acuáticas, colémbolos y aves como garzas y cigüeñuelas. Allí toma muestras de agua y suelo y registra estos organismos como indicadores de un ecosistema que la ciudad da por muerto.",
        "Graduado en Bellas Artes por la Universidad de Sevilla y Máster en Producción Artística Interdisciplinar por la Universidad de Málaga, es doctorando en la Universidad de Murcia y cursa el Grado Superior en Cerámica Artística en la EASD San Telmo. Ha presentado las exposiciones individuales Humedad, luego cristaliza (Museo Cristo de la Sangre, Murcia, 2026) y Agua, por favor (Sala Chema Cobo, Universidad de Málaga, 2025). Con Rigor Plastic participó en Ars Electronica (Linz, 2023), y en 2024 fue seleccionado como Changemaker en Pop the Vote! (Culture Action Europe). Ha impartido talleres y charlas, y en 2026 fue profesor invitado en un máster de la Universidad de Murcia. Actualmente es artista incubado en La Casa Amarilla (Málaga).",
        "Actualmente, su investigación doctoral estudia cómo lo hídrico se filtra en la materia y en los relatos, a escalas que van de la humedad de una pared o un charco a un cauce urbano o al propio cuerpo."],
-  en: ["An unglazed clay vessel, buried next to a plant, releases water by capillarity through its pores, attending to the thirst of the substrate. In the same way, Edu Lavrador (Seville, 1997), artist and researcher, focuses his work on processual practice and site-specific installation: systems of water, plants and conduits that set real hydric processes in motion (filtration, evaporation, irrigation, crystallisation) and remain active during the exhibition. His devices combine water, glass, plastic, clay, metal and low-complexity technologies.",
+  en: ["Edu Lavrador (Seville, 1997), artist and researcher, focuses his work on processual practice and site-specific installation: systems of water, plants and conduits that set real hydric processes in motion (filtration, evaporation, irrigation, crystallisation) and remain active during the exhibition. His devices combine water, glass, plastic, clay, metal and low-complexity technologies.",
        "Much of his research grows out of fieldwork. One of his case studies is the bed of the Guadalmedina river in Málaga, where a broken irrigation channel has formed a small wetland shared by snails, aquatic larvae, springtails and birds such as herons and black-winged stilts. There he takes water and soil samples and records these organisms as indicators of an ecosystem the city considers dead.",
        "He holds a degree in Fine Arts from the Universidad de Sevilla and a Master's in Interdisciplinary Artistic Production from the Universidad de Málaga, is a doctoral candidate at the Universidad de Murcia and is studying Artistic Ceramics at EASD San Telmo. He has presented the solo exhibitions Humedad, luego cristaliza (Museo Cristo de la Sangre, Murcia, 2026) and Agua, por favor (Sala Chema Cobo, Universidad de Málaga, 2025). With Rigor Plastic he took part in Ars Electronica (Linz, 2023), and in 2024 he was selected as a Changemaker in Pop the Vote! (Culture Action Europe). He has given workshops and talks, and in 2026 he was a guest lecturer on a master's programme at the Universidad de Murcia. He is currently an incubated artist at La Casa Amarilla (Málaga).",
        "His doctoral research studies how the hydric seeps into matter and into stories, at scales ranging from the damp in a wall or a puddle to an urban riverbed or the body itself."]
@@ -654,7 +659,7 @@ function carousel(items, opts = {}) {
   const id = "c" + Math.random().toString(36).slice(2, 7);
   const figs = items.map(([k, cap], i) => k.startsWith("yt:")
     ? `<figure class="vid"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${k.slice(3)}" aria-label="${UI[lang].play}: ${T(cap) || ""}"><span>${T(cap) || ""}</span></button></div></figure>`
-    : `<figure>${img(k, T(cap) || "", i > 1)}${opts.captions !== false && cap ? `<figcaption>${T(cap)}</figcaption>` : ""}</figure>`).join("");
+    : `<figure${items[i][2] ? ` data-go="${items[i][2]}" class="go"` : ""}>${img(k, T(cap) || "", i > 1)}${opts.captions !== false && cap ? `<figcaption>${T(cap)}</figcaption>` : ""}</figure>`).join("");
   return `<div class="car" id="${id}" style="${opts.h ? `--h:${opts.h};` : ""}${opts.hm ? `--hm:${opts.hm};` : ""}">
     <div class="car-track" tabindex="0" aria-label="Imágenes">${figs}</div>
     <div class="car-ui"><button type="button" data-d="-1">${UI[lang].prev}</button><span class="count">1 / ${items.length}</span><button type="button" data-d="1">${UI[lang].next}</button></div>
@@ -693,6 +698,17 @@ function pageHome() {
         <a class="shot" href="#${p.id}" aria-label="${T(p.title)}">${img(p.cover, T(p.title))}</a>
       </article>`).join("") + `</div>`;
   wireCarousels(true);
+  view.querySelectorAll(".car figure.go").forEach(f => f.addEventListener("click", e => {
+    const id = f.dataset.go;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { location.hash = id; return; }
+    const r = f.getBoundingClientRect();
+    ["", " r2", " r3"].forEach(c => {
+      const d = document.createElement("span"); d.className = "ripple" + c;
+      d.style.left = (e.clientX - r.left) + "px"; d.style.top = (e.clientY - r.top) + "px";
+      f.appendChild(d); setTimeout(() => d.remove(), 1600);
+    });
+    setTimeout(() => { location.hash = id; }, 650);
+  }));
 }
 
 function pageProject(p) {
