@@ -29,7 +29,9 @@
 html, body { margin: 0; background: var(--paper); color: var(--ink); }
 body { font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
 a { color: var(--mud); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-a:hover { text-decoration-thickness: 2px; }
+a:hover { text-decoration-style: wavy; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.contact a:hover, .infl a:hover { text-decoration-style: wavy; }
+#humedad { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; filter: blur(0.7px); }
 .prose a, .escrito a, .infl a, .big a, .contact a, .box a, .ficha a { text-decoration: underline; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--mud); outline-offset: 3px; }
 img { max-width: 100%; display: block; }
@@ -122,7 +124,7 @@ img { max-width: 100%; display: block; }
 .contact b { font-weight: 400; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mud); }
 .contact span { font-size: clamp(17px, 1.8vw, 22px); line-height: 1.35; overflow-wrap: anywhere; }
 .contact a { font-weight: 400; text-decoration: none; }
-.contact a:hover { text-decoration: underline; }
+.contact a:hover { text-decoration: underline wavy; }
 .contact small { display: block; font-size: 13px; opacity: 0.7; margin-top: 2px; }
 .note { font-size: 13px; opacity: 0.7; margin-top: 28px; }
 .vids { display: grid; gap: 28px; margin: 8px 0 0; max-width: 900px; }
@@ -771,7 +773,7 @@ function pageHome() {
     const im = f.querySelector("img");
     const ok = im && waterRipple(f, im, e.clientX, e.clientY);
     if (!ok) ringRipple(f, e.clientX, e.clientY);
-    setTimeout(() => { location.hash = id; }, ok ? 1700 : 650);
+    setTimeout(() => { location.hash = id; }, ok ? 280 : 200);
   }));
   view.querySelectorAll(".entry .shot").forEach(sh => sh.addEventListener("click", e => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -779,7 +781,7 @@ function pageHome() {
     const id = sh.getAttribute("href").slice(1), im = sh.querySelector("img");
     const ok = im && waterRipple(sh, im, e.clientX, e.clientY);
     if (!ok) ringRipple(sh, e.clientX, e.clientY);
-    setTimeout(() => { location.hash = id; }, ok ? 1700 : 650);
+    setTimeout(() => { location.hash = id; }, ok ? 280 : 200);
   }));
 }
 
@@ -930,6 +932,7 @@ function route() {
   else if (["bio", "cv", "textos", "contacto"].includes(h)) pageText(h);
   else pageHome();
   scrollTo(0, 0);
+  window.__humedadReset && requestAnimationFrame(() => window.__humedadReset());
 }
 document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => {
   lang = b.dataset.l;
@@ -937,6 +940,181 @@ document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click
   const y = scrollY; route(); scrollTo(0, y);
 }));
 addEventListener("hashchange", route);
+
+/* Humedad de pared: cada clic en algo que no reacciona moja la superficie.
+   El agua se reparte según la porosidad (por eso la mancha es irregular), y si hay mucha, la gravedad la hace escurrir hacia abajo.
+   Donde la superficie sigue húmeda más de un minuto, empieza a salir moho. */
+(function humedad() {
+  const cv = document.createElement("canvas"); cv.id = "humedad"; cv.setAttribute("aria-hidden", "true");
+  document.body.appendChild(cv);
+  const ctx = cv.getContext("2d");
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const C = innerWidth < 760 ? 3 : 4;          // px por celda
+  let GW = 0, GH = 0, m, wt, g, por, spk, mot, vet, fl, sa, lw, img, T = 0, drips = [], dryClock = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, raf = 0, slow = 0, last = 0;
+  const MOLD_T = 60, MOLD_GROW = 75, DRY_AFTER = 120;   // a los 2 minutos sin agua, empieza a secarse           // segundos: cuándo empieza el moho y cuánto tarda en salir del todo
+  // ruido determinista por celda
+  function h(x, y, s) { let n = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return ((n ^ (n >>> 16)) >>> 0) / 4294967295; }
+  function vn(x, y, sc, s) {
+    const fx = x / sc, fy = y / sc, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
+    const u = tx * tx * (3 - 2 * tx), v = ty * ty * (3 - 2 * ty);
+    const a = h(ix, iy, s), b = h(ix + 1, iy, s), c = h(ix, iy + 1, s), d = h(ix + 1, iy + 1, s);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+  function alloc() {
+    const w = Math.ceil(document.documentElement.scrollWidth / C), hh = Math.ceil(Math.max(document.documentElement.scrollHeight, innerHeight) / C);
+    if (w === GW && hh === GH) return;
+    const nl = new Float32Array(w * hh), nf = new Float32Array(w * hh), nsa = new Float32Array(w * hh), nv = new Float32Array(w * hh), no = new Float32Array(w * hh), nm = new Float32Array(w * hh), nw = new Float32Array(w * hh), ng = new Float32Array(w * hh), np = new Float32Array(w * hh), ns = new Float32Array(w * hh);
+    for (let y = 0; y < hh; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      np[i] = 0.04 + 0.96 * Math.pow(0.45 * vn(x, y, 18, 1) + 0.3 * vn(x, y, 7, 2) + 0.25 * vn(x, y, 2.5, 3), 2.2);   // porosidad
+      const k = vn(x, y, 6, 4) * 0.6 + vn(x, y, 1.6, 5) * 0.4;                                        // motas de moho
+      ns[i] = Math.max(0, (k - 0.42) / 0.58);
+      no[i] = 0.5 + 0.7 * vn(x, y, 5, 7) + 0.3 * vn(x, y, 1.5, 9);
+      nv[i] = Math.pow(vn(x * 3, y * 0.25, 9, 8), 2.2);                                           // regueros verticales
+      if (m && x < GW && y < GH) { const j = y * GW + x; nm[i] = m[j]; nw[i] = wt[j]; ng[i] = g[j]; nf[i] = fl[j]; nsa[i] = sa[j]; nl[i] = lw[j]; }
+    }
+    m = nm; wt = nw; g = ng; por = np; spk = ns; mot = no; vet = nv; fl = nf; sa = nsa; lw = nl; GW = w; GH = hh;
+    cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px";
+    img = ctx.createImageData(GW, GH);
+    paint(0, 0, GW - 1, GH - 1);
+  }
+  function grow(x, y) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; }
+  function wet(px, py) {
+    alloc();
+    const cx = Math.round(px / C), cy = Math.round(py / C), R = Math.round(7 + Math.random() * 4), ph = Math.random() * 9;
+    for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
+      const x = cx + i, y = cy + j; if (x < 1 || y < 1 || x >= GW - 1 || y >= GH - 1) continue;
+      const an = Math.atan2(j, i), rr = 1 + 0.22 * Math.sin(3 * an + ph) + 0.12 * Math.sin(5 * an + ph * 2);
+      const d = Math.hypot(i, j) / (R * rr); if (d > 1) continue;
+      const k = y * GW + x; m[k] += 1.0 * (1 - d * d) * (0.6 + 0.8 * por[k]); lw[k] = T; grow(x, y);
+    }
+    if (calm) { for (let n = 0; n < 160; n++) step(); paint(x0, y0, x1, y1); return; }
+    run();
+  }
+  let NB = [], NW = [0.08, 0.08, 0.08, 0.08, 0.045, 0.045, 0.045, 0.045];
+  function step() {
+    NB = [-1, 1, -GW, GW, -GW - 1, -GW + 1, GW - 1, GW + 1];
+    const X0 = Math.max(1, x0 - 1), Y0 = Math.max(1, y0 - 1), X1 = Math.min(GW - 2, x1 + 1), Y1 = Math.min(GH - 2, y1 + 1);
+    let moved = 0;
+    for (let y = Y1; y >= Y0; y--) for (let x = X0; x <= X1; x++) {
+      const i = y * GW + x, v = m[i]; if (v < 0.06) continue;
+      // capilaridad: hacia los vecinos más secos, según su porosidad y con algo de azar (así no salen formas geométricas)
+      for (let q = 0; q < 8; q++) {
+        const j = i + NB[q], d = v - m[j]; if (d <= 0.03) continue;
+        const f = d * NW[q] * por[j] * (0.35 + Math.random() * 0.9) * (v > 0.12 ? 1 : 0.35); m[i] -= f; m[j] += f; moved += f; if (f > 0.004) lw[j] = T;
+      }
+      // gravedad: lo que está muy mojado escurre hacia abajo, sobre todo por las vetas de la pared
+      if (v > 0.32) {
+        const j = i + GW, f = (v - 0.32) * (0.03 + 0.32 * vet[i]) * (0.4 + por[j]); m[i] -= f; m[j] += f; moved += f; fl[j] += f; if (f > 0.004) lw[j] = T;
+        // en el borde bajo de una zona saturada, a veces se suelta una gota que baja haciendo un reguero
+        if (v > 0.75 && m[j + GW] < 0.15 && drips.length < 40 && Math.random() < 0.004 * (0.3 + vet[i])) { m[i] -= 0.35; drips.push({ x: x + 0.5, y: y + 1, w: 0.35 + v * 0.3 }); }
+        if (y + 1 > y1) y1 = y + 1;
+      }
+    }
+    // ampliar la caja activa un poco
+    x0 = Math.max(1, x0 - 1); y0 = Math.max(1, y0 - 1); x1 = Math.min(GW - 2, x1 + 1); y1 = Math.min(GH - 2, y1 + 1);
+    return moved;
+  }
+  function age(dt) {
+    NB = [-1, 1, -GW, GW, -GW - 1, -GW + 1, GW - 1, GW + 1];
+    let busy = false;
+    dryClock += dt;
+    // el frente de secado avanza a tirones: en cada parada deja un anillo de sales
+    const pin = Math.max(0, Math.sin(dryClock * 0.35)) ** 6;
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const i = y * GW + x; let v = m[i]; if (v < 0.01) continue;
+      busy = true;
+      const since = T - lw[i];
+      if (since > DRY_AFTER) {
+        // se seca antes por los bordes (poca agua) y por arriba (menos agua escurrida)
+        const ev = dt * (0.004 + 0.02 * (1 - Math.min(1, v / 0.4))) * (1.3 - Math.min(0.6, fl[i] * 2));
+        const before = v; v = Math.max(0, v - ev); m[i] = v;
+        if (before >= 0.06 && v < 0.06) sa[i] = Math.min(1, sa[i] + 0.15 + 0.85 * pin);
+      } else {
+        wt[i] += dt;
+        if (v > 0.25 && sa[i] > 0) sa[i] = Math.max(0, sa[i] - dt / 6);          // al volver a mojar, las sales se disuelven
+        if (v < 0.16 && wt[i] > 20 && sa[i] < 1) sa[i] = Math.min(1, sa[i] + dt / 45);
+      }
+      if (v < 0.12) continue;
+      const lower = Math.min(1, fl[i] * 4);   // regueros y parte baja: donde más agua ha pasado
+      if (g[i] > 0) {
+        if (g[i] < 1) g[i] = Math.min(1, g[i] + dt / 28 * (0.5 + 0.5 * por[i]) * (since > DRY_AFTER ? 0.2 : 1.6));   // revive más rápido de lo que nació
+        if (g[i] > 0.5) {
+          for (let q = 0; q < 8; q++) { const j = i + NB[q]; if (g[j] === 0 && m[j] > 0.2 && Math.random() < dt * (q < 4 ? 0.09 : 0.06) * (0.2 + spk[j] + por[j])) g[j] = 0.02; }
+        }
+      } else if (wt[i] > MOLD_T && Math.random() < dt * 0.0009 * (0.2 + spk[i]) * (0.15 + 1.8 * lower)) g[i] = 0.02;   // brota un punto
+    }
+    return busy;
+  }
+  function paint(X0, Y0, X1, Y1) {
+    if (X1 < X0) return;
+    X0 = Math.max(0, X0 - 2); Y0 = Math.max(0, Y0 - 2); X1 = Math.min(GW - 1, X1 + 2); Y1 = Math.min(GH - 1, Y1 + 2);
+    const d = img.data;
+    for (let y = Y0; y <= Y1; y++) for (let x = X0; x <= X1; x++) {
+      const i = y * GW + x, p = i * 4, v = Math.min(m[i], 1.4);
+      if (v < 0.01 && g[i] <= 0 && sa[i] <= 0) { d[p + 3] = 0; continue; }
+      const mott = mot[i];                                               // textura de pared
+      const ring = Math.exp(-(((v - 0.09) / 0.05) ** 2));                  // cerco donde el agua se detiene
+      const salt = sa[i];
+      let ad = (0.05 * Math.min(1, v / 0.12) + 0.07 * Math.min(1, v) + 0.08 * ring * (1 - 0.65 * salt)) * mott;
+      // sales: costra crema clara y granulosa en el borde
+      const as = salt * Math.max(ring, v < 0.06 ? 0.8 : 0) * 0.16 * (spk[i] > 0.15 ? 1 : 0.35);
+      // moho: de blanco grisáceo a gris verdoso, y con el tiempo puntos oscuros
+      const gm = g[i], old = Math.min(1, Math.max(0, (wt[i] - MOLD_T - 45) / 90));
+      const dorm = v < 0.08 ? 1 : 0;
+      const am = 0.3 * gm * (0.3 + 0.7 * spk[i]) * (0.6 + 0.4 * mott) * (dorm ? 0.75 : 1);
+      const dark = old * (spk[i] > 0.62 ? 1 : 0.25) * gm;
+      let mr = 128 - 34 * gm - 44 * dark, mg = 134 - 30 * gm - 44 * dark, mb = 108 - 26 * gm - 36 * dark;
+      if (dorm) { const gr = (mr + mg + mb) / 3; mr = mr * 0.5 + gr * 0.5; mg = mg * 0.5 + gr * 0.5; mb = mb * 0.5 + gr * 0.5 + 4; }
+      const t = ad + as + am + 1e-6;
+      d[p] = (122 * ad + 205 * as + mr * am) / t; d[p + 1] = (106 * ad + 196 * as + mg * am) / t; d[p + 2] = (60 * ad + 168 * as + mb * am) / t;
+      d[p + 3] = Math.min(0.55, ad + as + am * (1 + 0.6 * dark)) * 255;
+    }
+    ctx.putImageData(img, 0, 0, X0, Y0, X1 - X0 + 1, Y1 - Y0 + 1);
+  }
+  function drip() {
+    for (let k = drips.length - 1; k >= 0; k--) {
+      const d = drips[k];
+      d.y += 0.6 + Math.random() * 0.5; d.x += (vn(d.x, d.y, 4, 11) - 0.5) * 0.5;
+      const x = Math.round(d.x), y = Math.round(d.y);
+      if (x < 1 || x >= GW - 1 || y >= GH - 1 || d.w <= 0.02) { drips.splice(k, 1); continue; }
+      const i = y * GW + x, q = Math.min(d.w, 0.05 + 0.04 * por[i]);
+      m[i] += q; d.w -= q; lw[i] = T; fl[i] += q; grow(x, y);
+      if (m[i] < 0.5) m[i - 1] += q * 0.25, m[i + 1] += q * 0.25;   // el reguero se ensancha un poco
+    }
+  }
+  function frame(t) {
+    const dt = Math.min(0.1, (t - (last || t)) / 1000); last = t;
+    T += dt;
+    let mv = 0; for (let n = 0; n < 3; n++) { mv += step(); drip(); }
+    age(dt); paint(x0, y0, x1, y1);
+    raf = mv > 0.002 || drips.length ? requestAnimationFrame(frame) : 0;
+    if (!raf) { last = 0; startSlow(); }
+  }
+  function startSlow() {                       // cuando el agua ya no se mueve, el moho sigue creciendo despacio
+    if (slow) return;
+    let prev = performance.now();
+    slow = setInterval(() => {
+      if (document.hidden) { prev = performance.now(); return; }
+      const now = performance.now(), dt = Math.min(2, (now - prev) / 1000); prev = now; T += dt;
+      if (!age(dt)) { clearInterval(slow); slow = 0; return; }
+      paint(x0, y0, x1, y1);
+    }, 500);
+  }
+  function run() { if (slow) { clearInterval(slow); slow = 0; } if (!raf) raf = requestAnimationFrame(frame); }
+  const inert = "a, button, input, textarea, select, label, video, iframe, .car figure.go, .car figure.adv, .car-track, .lang, .yt-play";
+  document.addEventListener("click", e => {
+    if (e.target.closest(inert)) return;
+    if (String(getSelection ? getSelection() : "").length) return;
+    wet(e.pageX, e.pageY);
+  });
+  window.__humedadReset = () => {              // al cambiar de página la pared se seca
+    if (raf) cancelAnimationFrame(raf); raf = 0; if (slow) { clearInterval(slow); slow = 0; }
+    m = null; GW = GH = 0; x0 = y0 = 1e9; x1 = y1 = -1; drips = []; alloc();
+  };
+  new ResizeObserver(() => { if (m) alloc(); }).observe(document.body);
+})();
+
 route();
 </script>
 </body>
