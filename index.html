@@ -68,7 +68,7 @@ img { max-width: 100%; display: block; }
 .entry .meta a { font-size: 15px; margin-bottom: 8px; }
 .entry .meta span { color: var(--mud); }
 .entry .meta .yr { font-family: var(--mono); font-size: 12px; margin-top: 8px; }
-.entry .shot { display: block; width: 100%; }
+.entry .shot { display: block; width: 100%; position: relative; overflow: hidden; }
 .entry.m .shot { width: 76%; }
 .entry.s .shot { width: 50%; }
 .entry.right .shot { margin-left: auto; }
@@ -747,6 +747,14 @@ function pageHome() {
     const im = f.querySelector("img");
     const ok = im && waterRipple(f, im, e.clientX, e.clientY);
     if (!ok) ringRipple(f, e.clientX, e.clientY);
+    setTimeout(() => { location.hash = id; }, ok ? 1700 : 650);
+  }));
+  view.querySelectorAll(".entry .shot").forEach(sh => sh.addEventListener("click", e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    e.preventDefault();
+    const id = sh.getAttribute("href").slice(1), im = sh.querySelector("img");
+    const ok = im && waterRipple(sh, im, e.clientX, e.clientY);
+    if (!ok) ringRipple(sh, e.clientX, e.clientY);
     setTimeout(() => { location.hash = id; }, ok ? 1700 : 650);
   }));
 }
