@@ -1133,6 +1133,7 @@ addEventListener("hashchange", route);
   document.body.appendChild(bc);
   const bx = bc.getContext("2d"), BS = innerWidth < 760 ? 0.85 : 1, BUG_T = 180;   // a los 3 minutos
   let bugRaf = 0, bugLast = 0, scared = [];
+  const spr = new Image(); spr.src = "img/cochinilla.webp"; spr.onload = () => drawBugs();   // foto de Edu, vista desde arriba
   function sizeBugs() { const d = devicePixelRatio || 1; bc.width = innerWidth * d; bc.height = innerHeight * d; bc.style.width = innerWidth + "px"; bc.style.height = innerHeight + "px"; bx.setTransform(d, 0, 0, d, 0, 0); drawBugs(); }
   function cell(px, py) { const x = Math.round(px / C), y = Math.round(py / C); return x > 0 && y > 0 && x < GW - 1 && y < GH - 1 ? y * GW + x : -1; }
   function rimSpot(near) {                     // un sitio del cerco: borde húmedo, sales o moho
@@ -1234,8 +1235,12 @@ addEventListener("hashchange", route);
       const x = b.x - ox, y = b.y - oy; if (x < -20 || y < -20 || x > innerWidth + 20 || y > innerHeight + 20) return;
       const s = BS * b.sz;
       bx.save(); bx.translate(x, y); bx.rotate(b.h);
-      bx.fillStyle = "rgba(35, 32, 15, 0.18)"; bx.beginPath(); bx.ellipse(1, 1.4, 5.2 * s, 3.4 * s, 0, 0, 6.3); bx.fill();   // sombra
-      bx.fillStyle = "#3c3a3f"; bx.beginPath(); bx.ellipse(0, 0, 5 * s, 3.2 * s, 0, 0, 6.3); bx.fill();                  // caparazón
+      bx.fillStyle = "rgba(35, 32, 15, 0.13)"; bx.beginPath(); bx.ellipse(0.6, 1.5, 4.6 * s, 2.3 * s, 0, 0, 6.3); bx.fill();   // sombra
+      if (spr.complete && spr.naturalWidth) {                                                                         // fotografía
+        const w = 14.5 * s, h = w * spr.naturalHeight / spr.naturalWidth;
+        bx.drawImage(spr, -w / 2, -h / 2, w, h); bx.restore(); return;
+      }
+      bx.fillStyle = "#3c3a3f"; bx.beginPath(); bx.ellipse(0, 0, 5 * s, 3.2 * s, 0, 0, 6.3); bx.fill();                  // caparazón (si la foto no carga)
       bx.strokeStyle = "rgba(150, 146, 150, 0.55)"; bx.lineWidth = 0.6;
       for (let q = -3; q <= 3; q++) { const xx = q * 1.25 * s, hh = 3.2 * s * Math.sqrt(1 - (xx / (5 * s)) ** 2); bx.beginPath(); bx.moveTo(xx, -hh * 0.92); bx.lineTo(xx, hh * 0.92); bx.stroke(); }
       bx.fillStyle = "rgba(205, 198, 185, 0.7)";                                                                         // motas claras del borde
