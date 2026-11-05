@@ -759,50 +759,64 @@ function pageHome() {
   }));
 }
 
-/* Ondas de agua: simulación sobre la propia imagen, como una piedra que cae */
+/* Ondas de agua: una piedra cae en la imagen y las ondas se desbordan por toda la pantalla */
+let waterBusy = false;
 function waterRipple(fig, im, px, py) {
   try {
-    if (fig.querySelector("canvas.water")) return true;
-    const ir = im.getBoundingClientRect(), fr = fig.getBoundingClientRect();
-    const S = ir.width * ir.height > 420000 ? 2 : 1, STEPS = S === 1 ? 3 : 2, W = Math.max(8, Math.round(ir.width / S)), H = Math.max(8, Math.round(ir.height / S));
-    const src = document.createElement("canvas"); src.width = W; src.height = H;
-    const sc = src.getContext("2d");
-    const nw = im.naturalWidth, nh = im.naturalHeight, k = Math.max(W / nw, H / nh);
-    sc.drawImage(im, (W - nw * k) / 2, (H - nh * k) / 2, nw * k, nh * k);
-    const base = sc.getImageData(0, 0, W, H).data;
-    const cv = document.createElement("canvas"); cv.className = "water"; cv.width = W; cv.height = H;
-    cv.style.cssText = `position:absolute;left:${ir.left - fr.left}px;top:${ir.top - fr.top}px;width:${ir.width}px;height:${ir.height}px;pointer-events:none;`;
-    fig.appendChild(cv);
+    if (waterBusy) return true;
+    const vw = innerWidth, vh = innerHeight, ir = im.getBoundingClientRect();
+    const S = 2, W = Math.ceil(vw / S), H = Math.ceil(vh / S);
+    // imagen a la resolución de la simulación
+    const ix = Math.round(ir.left / S), iy = Math.round(ir.top / S), iw = Math.max(1, Math.round(ir.width / S)), ih = Math.max(1, Math.round(ir.height / S));
+    const src = document.createElement("canvas"); src.width = iw; src.height = ih;
+    const sc = src.getContext("2d"), nw = im.naturalWidth, nh = im.naturalHeight, k = Math.max(iw / nw, ih / nh);
+    sc.drawImage(im, (iw - nw * k) / 2, (ih - nh * k) / 2, nw * k, nh * k);
+    const base = sc.getImageData(0, 0, iw, ih).data;
+    waterBusy = true;
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    cv.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:50;transition:opacity 1.2s ease;";
+    document.body.appendChild(cv);
     const ctx = cv.getContext("2d"), out = ctx.createImageData(W, H), o = out.data;
     let a = new Float32Array(W * H), b = new Float32Array(W * H);
-    const drop = (x, y, r, str) => {
-      for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) {
-        const xx = x + i, yy = y + j, d = Math.sqrt(i * i + j * j);
-        if (xx > 1 && yy > 1 && xx < W - 2 && yy < H - 2 && d <= r) a[yy * W + xx] += str * Math.cos((d / r) * Math.PI / 2);
-      }
-    };
-    drop(Math.round((px - ir.left) / S), Math.round((py - ir.top) / S), S === 1 ? 8 : 5, 1100);
-    const t0 = performance.now();
+    const cx = Math.round(px / S), cy = Math.round(py / S), R = 6;
+    for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
+      const x = cx + i, y = cy + j, d = Math.sqrt(i * i + j * j);
+      if (x > 1 && y > 1 && x < W - 2 && y < H - 2 && d <= R) a[y * W + x] += 1300 * Math.cos((d / R) * Math.PI / 2);
+    }
+    const startHash = location.hash, t0 = performance.now();
+    let fading = false;
     const frame = t => {
-      if (!cv.isConnected) return;
-      for (let n = 0; n < STEPS; n++) {
+      if (!cv.isConnected) { waterBusy = false; return; }
+      for (let n = 0; n < 3; n++) {
         for (let y = 1; y < H - 1; y++) for (let x = 1, i = y * W + 1; x < W - 1; x++, i++)
-          b[i] = ((a[i - 1] + a[i + 1] + a[i - W] + a[i + W]) * 0.5 - b[i]) * 0.991;
+          b[i] = ((a[i - 1] + a[i + 1] + a[i - W] + a[i + W]) * 0.5 - b[i]) * 0.99;
         const tmp = a; a = b; b = tmp;
       }
+      const showImg = location.hash === startHash;
       for (let y = 1; y < H - 1; y++) for (let x = 1, i = y * W + 1; x < W - 1; x++, i++) {
-        const dx = a[i - 1] - a[i + 1], dy = a[i - W] - a[i + W];
-        let sx = x + (dx * 0.06 | 0), sy = y + (dy * 0.06 | 0);
-        sx = sx < 0 ? 0 : sx >= W ? W - 1 : sx; sy = sy < 0 ? 0 : sy >= H ? H - 1 : sy;
-        const si = (sy * W + sx) * 4, q = i * 4, l = (dx + dy) * 0.09;
-        o[q] = base[si] + l; o[q + 1] = base[si + 1] + l; o[q + 2] = base[si + 2] + l * 1.05; o[q + 3] = 255;
+        const dx = a[i - 1] - a[i + 1], dy = a[i - W] - a[i + W], q = i * 4, l = (dx + dy) * 0.09;
+        const inImg = showImg && x >= ix && x < ix + iw && y >= iy && y < iy + ih;
+        if (inImg) {
+          let sx = x - ix + (dx * 0.05 | 0), sy = y - iy + (dy * 0.05 | 0);
+          sx = sx < 0 ? 0 : sx >= iw ? iw - 1 : sx; sy = sy < 0 ? 0 : sy >= ih ? ih - 1 : sy;
+          const si = (sy * iw + sx) * 4;
+          o[q] = base[si] + l; o[q + 1] = base[si + 1] + l; o[q + 2] = base[si + 2] + l * 1.05; o[q + 3] = 255;
+        } else {
+          const al = Math.abs(l);
+          if (al < 1.2) { o[q + 3] = 0; continue; }
+          if (l > 0) { o[q] = 255; o[q + 1] = 255; o[q + 2] = 250; }
+          else { o[q] = 70; o[q + 1] = 64; o[q + 2] = 20; }
+          o[q + 3] = al * 5 > 110 ? 110 : al * 5;
+        }
       }
       ctx.putImageData(out, 0, 0);
-      if (t - t0 < 6000) requestAnimationFrame(frame); else cv.remove();
+      const el = t - t0;
+      if (el > 4200 && !fading) { fading = true; cv.style.opacity = "0"; }
+      if (el < 5600) requestAnimationFrame(frame); else { cv.remove(); waterBusy = false; }
     };
     requestAnimationFrame(frame);
     return true;
-  } catch (err) { return false; }
+  } catch (err) { waterBusy = false; return false; }
 }
 function ringRipple(f, px, py) {
   const r = f.getBoundingClientRect();
