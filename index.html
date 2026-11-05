@@ -791,6 +791,9 @@ function waterRipple(fig, im, px, py) {
     }
     const startHash = location.hash, t0 = performance.now();
     let imgOn = true;
+    const offImg = () => { imgOn = false; };
+    ["scroll", "wheel", "touchmove"].forEach(ev => addEventListener(ev, offImg, { passive: true, capture: true }));
+    setTimeout(() => ["scroll", "wheel", "touchmove"].forEach(ev => removeEventListener(ev, offImg, { capture: true })), 6000);
     let fading = false;
     const frame = t => {
       if (!cv.isConnected) { waterBusy = false; return; }
