@@ -28,8 +28,8 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--paper); color: var(--ink); }
 body { font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
-a { color: var(--mud); font-weight: 700; text-decoration: none; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-a:hover { text-decoration: underline; }
+a { color: var(--mud); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
 .prose a, .escrito a, .infl a, .big a, .contact a, .box a, .ficha a { text-decoration: underline; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--mud); outline-offset: 3px; }
 img { max-width: 100%; display: block; }
@@ -37,12 +37,9 @@ img { max-width: 100%; display: block; }
 .wrap { padding: 0 20px; max-width: 1400px; margin: 0 auto; }
 
 /* Cabecera */
-.top { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; padding: 22px 0 30px; }
-.menu { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 26px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; }
-.menu > span { display: none; }
-.menu a { font-weight: 400; }
-.menu a:first-child { font-weight: 700; margin-right: auto; }
-.menu a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 18px 0 28px; }
+.menu { display: grid; gap: 2px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; }
+.menu a[aria-current="page"] { text-decoration-thickness: 3px; }
 .lang { display: flex; gap: 2px; font-family: var(--mono); font-size: 13px; }
 .lang button { background: none; border: 0; padding: 4px 6px; font: inherit; color: var(--mud); cursor: pointer; }
 .lang button[aria-pressed="true"] { background: var(--mud); color: var(--paper); }
@@ -157,10 +154,6 @@ img { max-width: 100%; display: block; }
 footer { border-top: 1px solid var(--rule); padding: 18px 0 30px; font-family: var(--mono); font-size: 12px; color: var(--mud); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
 @media (max-width: 760px) {
-  .top { padding: 16px 0 22px; gap: 12px; position: relative; }
-  .top .lang { position: absolute; top: 12px; right: 0; }
-  .menu { gap: 4px 13px; font-size: 12.5px; letter-spacing: 0; }
-  .menu a:first-child { flex-basis: 100%; margin: 0 0 2px; font-size: 15px; }
   .grid { grid-template-columns: 1fr; gap: 32px; margin-top: 44px; }
   .entry, .phead, .pbody, .page { grid-template-columns: 1fr; gap: 12px; }
   .entry .meta { position: static; }
@@ -761,15 +754,15 @@ function wireCarousels(auto) {
 function pageHome() {
   menu("home");
   view.innerHTML = carousel(HERO, { h: "70vh", hm: "56vh", hero: true }) +
-    `<div class="grid">` + PROJECTS.map((p, i) => `${i === 0 || PROJECTS[i - 1].group !== p.group ? `<h2 class="group">${p.group === "obra" ? UI[lang].works : UI[lang].lines}</h2>` : ""}
-      <article class="card">
-        <a class="shot" href="#${p.id}" aria-label="${T(p.title)}">${img(p.cover, T(p.title))}</a>
+    `<div class="feed">` + PROJECTS.map((p, i) => `${i === 0 || PROJECTS[i - 1].group !== p.group ? `<h2 class="group">${p.group === "obra" ? UI[lang].works : UI[lang].lines}</h2>` : ""}
+      <article class="entry ${p.size || ""}">
         <div class="meta">
-          <a class="t" href="#${p.id}">${T(p.title)}</a>
+          <a href="#${p.id}">${T(p.title)}</a>
           <span>${T(p.kind)}</span>
           <span>${p.where}</span>
           <span class="yr">${p.year}</span>
         </div>
+        <a class="shot" href="#${p.id}" aria-label="${T(p.title)}">${img(p.cover, T(p.title))}</a>
       </article>`).join("") + `</div>`;
   wireCarousels(true);
   view.querySelectorAll(".car figure.go").forEach(f => f.addEventListener("click", e => {
@@ -780,7 +773,7 @@ function pageHome() {
     if (!ok) ringRipple(f, e.clientX, e.clientY);
     setTimeout(() => { location.hash = id; }, ok ? 1700 : 650);
   }));
-  view.querySelectorAll(".card .shot").forEach(sh => sh.addEventListener("click", e => {
+  view.querySelectorAll(".entry .shot").forEach(sh => sh.addEventListener("click", e => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     e.preventDefault();
     const id = sh.getAttribute("href").slice(1), im = sh.querySelector("img");
