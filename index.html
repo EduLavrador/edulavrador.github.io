@@ -778,6 +778,12 @@ function waterRipple(fig, im, px, py) {
     document.body.appendChild(cv);
     const ctx = cv.getContext("2d"), out = ctx.createImageData(W, H), o = out.data;
     let a = new Float32Array(W * H), b = new Float32Array(W * H);
+    // borde absorbente: las ondas se apagan al llegar al límite de la pantalla en vez de rebotar
+    const damp = new Float32Array(W * H), M = 40;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const d = Math.min(x, y, W - 1 - x, H - 1 - y);
+      damp[y * W + x] = d >= M ? 0.99 : 0.99 * (0.82 + 0.18 * (d / M));
+    }
     const cx = Math.round(px / S), cy = Math.round(py / S), R = 6;
     for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
       const x = cx + i, y = cy + j, d = Math.sqrt(i * i + j * j);
@@ -789,7 +795,7 @@ function waterRipple(fig, im, px, py) {
       if (!cv.isConnected) { waterBusy = false; return; }
       for (let n = 0; n < 3; n++) {
         for (let y = 1; y < H - 1; y++) for (let x = 1, i = y * W + 1; x < W - 1; x++, i++)
-          b[i] = ((a[i - 1] + a[i + 1] + a[i - W] + a[i + W]) * 0.5 - b[i]) * 0.99;
+          b[i] = ((a[i - 1] + a[i + 1] + a[i - W] + a[i + W]) * 0.5 - b[i]) * damp[i];
         const tmp = a; a = b; b = tmp;
       }
       const showImg = location.hash === startHash;
