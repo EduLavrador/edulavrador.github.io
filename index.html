@@ -111,9 +111,12 @@ img { max-width: 100%; display: block; }
 .yt-frame { position: relative; aspect-ratio: 16 / 9; background: var(--ink); }
 .yt-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .yt-play { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; cursor: pointer; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: inherit; }
-.yt-play span { display: grid; place-items: center; gap: 12px; font-size: 14px; }
-.yt-play span::before { content: ""; width: 0; height: 0; border-left: 26px solid var(--mud); border-top: 16px solid transparent; border-bottom: 16px solid transparent; margin-left: 8px; }
-.yt-play:hover span::before { border-left-color: var(--paper); }
+.yt-play { overflow: hidden; }
+.yt-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; transition: transform 0.4s, filter 0.4s; filter: brightness(0.82); }
+.yt-play:hover .yt-thumb { transform: scale(1.02); filter: brightness(0.7); }
+.yt-play span { position: relative; display: grid; place-items: center; gap: 12px; font-size: 14px; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+.yt-play span::before { content: ""; width: 0; height: 0; border-left: 30px solid var(--paper); border-top: 18px solid transparent; border-bottom: 18px solid transparent; margin-left: 8px; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.5)); }
+.yt-play:hover span::before { border-left-color: var(--mud); }
 .yt small { font-size: 12px; opacity: 0.75; }
 .loop { display: grid; gap: 6px; }
 .loop video { width: 100%; height: auto; display: block; background: var(--mud-soft); }
@@ -698,7 +701,7 @@ function menu(active) {
 function carousel(items, opts = {}) {
   const id = "c" + Math.random().toString(36).slice(2, 7);
   const figs = items.map(([k, cap], i) => k.startsWith("yt:")
-    ? `<figure class="vid"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${k.slice(3)}" aria-label="${UI[lang].play}: ${T(cap) || ""}"><span>${T(cap) || ""}</span></button></div></figure>`
+    ? `<figure class="vid"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${k.slice(3)}" aria-label="${UI[lang].play}: ${T(cap) || ""}"><img class="yt-thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${k.slice(3)}/maxresdefault.jpg" onload="if(this.naturalWidth<200){this.onload=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'}" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'"><span>${T(cap) || ""}</span></button></div></figure>`
     : `<figure${items[i][2] ? ` data-go="${items[i][2]}" class="go"` : ""}>${img(k, T(cap) || "", i > 1)}${opts.captions !== false && cap ? `<figcaption>${T(cap)}</figcaption>` : ""}</figure>`).join("");
   return `<div class="car" id="${id}" style="${opts.h ? `--h:${opts.h};` : ""}${opts.hm ? `--hm:${opts.hm};` : ""}">
     <div class="car-track" tabindex="0" aria-label="Imágenes">${figs}</div>
@@ -806,7 +809,7 @@ function pageProject(p) {
   menu("proyectos");
   const i = PROJECTS.indexOf(p), nx = PROJECTS[(i + 1) % PROJECTS.length];
   const quote = p.quote ? `<blockquote class="quote">${p.quote[lang][0]}<cite>${p.quote[lang][1]}</cite></blockquote>` : "";
-  const vids = p.videos ? `<div class="vids">${p.videos.map(([n0, id]) => { const n = T(n0); return `<div class="yt"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${id}" aria-label="${UI[lang].play}: ${n}"><span>${n}</span></button></div><small><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube</a></small></div>`; }).join("")}</div>` : "";
+  const vids = p.videos ? `<div class="vids">${p.videos.map(([n0, id]) => { const n = T(n0); return `<div class="yt"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${id}" aria-label="${UI[lang].play}: ${n}"><img class="yt-thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<200){this.onload=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'}" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'"><span>${n}</span></button></div><small><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube</a></small></div>`; }).join("")}</div>` : "";
   const loop = p.loop ? `<figure class="loop"><video poster="img/${p.loop.src}.jpg" autoplay muted loop playsinline preload="metadata"><source src="img/${p.loop.src}.mp4" type="video/mp4"><source src="img/${p.loop.src}.webm" type="video/webm"></video><figcaption>${p.loop.cap[lang]}</figcaption></figure>` : "";
   const rel = ESCRITOS.find(e => e.related === p.id);
   const relBox = rel ? `<div class="box"><h2>${UI[lang].text}</h2><a href="#${rel.id}">${rel.title[lang]}</a></div>` : "";
