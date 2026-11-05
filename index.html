@@ -28,17 +28,21 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--paper); color: var(--ink); }
 body { font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
-a { color: var(--mud); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-a:hover { text-decoration-thickness: 2px; }
+a { color: var(--mud); font-weight: 700; text-decoration: none; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration: underline; }
+.prose a, .escrito a, .infl a, .big a, .contact a, .box a, .ficha a { text-decoration: underline; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--mud); outline-offset: 3px; }
 img { max-width: 100%; display: block; }
 [hidden] { display: none !important; }
 .wrap { padding: 0 20px; max-width: 1400px; margin: 0 auto; }
 
 /* Cabecera */
-.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 18px 0 28px; }
-.menu { display: grid; gap: 2px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; }
-.menu a[aria-current="page"] { text-decoration-thickness: 3px; }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; padding: 22px 0 30px; }
+.menu { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 26px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; }
+.menu > span { display: none; }
+.menu a { font-weight: 400; }
+.menu a:first-child { font-weight: 700; margin-right: auto; }
+.menu a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; }
 .lang { display: flex; gap: 2px; font-family: var(--mono); font-size: 13px; }
 .lang button { background: none; border: 0; padding: 4px 6px; font: inherit; color: var(--mud); cursor: pointer; }
 .lang button[aria-pressed="true"] { background: var(--mud); color: var(--paper); }
@@ -56,8 +60,9 @@ img { max-width: 100%; display: block; }
 .ripple.r3 { animation-delay: 0.28s; border-width: 1px; }
 @keyframes ripple { 0% { width: 0; height: 0; opacity: 0.95; } 100% { width: 360px; height: 360px; opacity: 0; } }
 .car-ui { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--mud); }
-.car-ui button { background: none; border: 1px solid var(--mud); color: var(--mud); font: inherit; padding: 4px 10px; cursor: pointer; }
-.car-ui button:hover { background: var(--mud); color: var(--paper); }
+.car-ui button { background: none; border: 0; color: var(--mud); font: inherit; padding: 4px 0; cursor: pointer; text-underline-offset: 3px; }
+.car-ui button:hover { text-decoration: underline; }
+.car figure.adv { cursor: pointer; }
 .car-ui .count { font-variant-numeric: tabular-nums; }
 
 /* Portada */
@@ -79,6 +84,18 @@ img { max-width: 100%; display: block; }
 .field li b { font-weight: 400; color: var(--mud); }
 .entry .shot img { width: 100%; height: auto; max-height: 78vh; object-fit: cover; transition: opacity 0.25s; }
 .entry .shot:hover img { opacity: 0.88; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 20px; margin: 64px 0 80px; }
+.grid .group { grid-column: 1 / -1; margin: 16px 0 -16px; }
+.grid .group:first-child { margin-top: 0; }
+.card { display: grid; gap: 10px; align-content: start; font-size: 14px; }
+.card .shot { display: block; position: relative; overflow: hidden; aspect-ratio: 4 / 3; background: var(--mud-soft); }
+.card .shot img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.25s; }
+.card .shot:hover img { opacity: 0.88; }
+.card .t { font-size: 15px; }
+.card .meta { display: grid; color: var(--mud); line-height: 1.45; }
+.card .yr { font-size: 12px; margin-top: 4px; }
+@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 
 /* Proyecto */
 .phead { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 24px; margin-bottom: 36px; }
@@ -135,13 +152,20 @@ img { max-width: 100%; display: block; }
 footer { border-top: 1px solid var(--rule); padding: 18px 0 30px; font-family: var(--mono); font-size: 12px; color: var(--mud); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
 @media (max-width: 760px) {
+  .top { padding: 16px 0 22px; gap: 12px; position: relative; }
+  .top .lang { position: absolute; top: 12px; right: 0; }
+  .menu { gap: 4px 13px; font-size: 12.5px; letter-spacing: 0; }
+  .menu a:first-child { flex-basis: 100%; margin: 0 0 2px; font-size: 15px; }
+  .grid { grid-template-columns: 1fr; gap: 32px; margin-top: 44px; }
   .entry, .phead, .pbody, .page { grid-template-columns: 1fr; gap: 12px; }
   .entry .meta { position: static; }
   .entry.m .shot, .entry.s .shot { width: 100%; }
-  .car figure.vid .yt-frame { width: 84vw; height: auto; }
+  .car figure { flex: 0 0 100%; }
+  .car figure.vid .yt-frame { width: 100%; height: auto; }
   .group { margin-bottom: -20px; }
-  .car img { width: 84vw; height: auto; max-height: var(--hm, 60vh); object-fit: cover; }
-  .car figcaption { max-width: 84vw; }
+  .car img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: contain; background: var(--paper); }
+  .car.hero img { aspect-ratio: 4 / 5; object-fit: cover; }
+  .car figcaption { max-width: 100%; }
   .pbody .side { order: 2; }
   .feed { gap: 56px; margin-top: 48px; }
   .prose { font-size: 16px; }
@@ -691,8 +715,8 @@ const img = (k, alt, lazy = true) => `<img src="img/${k}.jpg" alt="${(alt || "")
 function menu(active) {
   const items = [["proyectos", UI[lang].projects], ["bio", UI[lang].bio], ["cv", UI[lang].cv], ["textos", UI[lang].texts], ["contacto", UI[lang].contact]];
   document.getElementById("menu").innerHTML =
-    `<a href="#proyectos"${active === "home" ? ' aria-current="page"' : ""}>Edu Lavrador</a><span aria-hidden="true">&nbsp;</span>` +
-    items.slice(1).map(([id, l]) => `<a href="#${id}"${active === id ? ' aria-current="page"' : ""}>${l}</a>`).join("");
+    `<a href="#proyectos">Edu Lavrador</a><span aria-hidden="true">&nbsp;</span>` +
+    items.map(([id, l]) => `<a href="#${id}"${active === id || (id === "proyectos" && active === "home") ? ' aria-current="page"' : ""}>${l}</a>`).join("");
   document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === lang));
   document.documentElement.lang = lang;
   document.getElementById("foot").textContent = UI[lang].place;
@@ -703,7 +727,7 @@ function carousel(items, opts = {}) {
   const figs = items.map(([k, cap], i) => k.startsWith("yt:")
     ? `<figure class="vid"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${k.slice(3)}" aria-label="${UI[lang].play}: ${T(cap) || ""}"><img class="yt-thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${k.slice(3)}/maxresdefault.jpg" onload="if(this.naturalWidth<200){this.onload=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'}" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'"><span>${T(cap) || ""}</span></button></div></figure>`
     : `<figure${items[i][2] ? ` data-go="${items[i][2]}" class="go"` : ""}>${img(k, T(cap) || "", i > 1)}${opts.captions !== false && cap ? `<figcaption>${T(cap)}</figcaption>` : ""}</figure>`).join("");
-  return `<div class="car" id="${id}" style="${opts.h ? `--h:${opts.h};` : ""}${opts.hm ? `--hm:${opts.hm};` : ""}">
+  return `<div class="car${opts.hero ? " hero" : ""}" id="${id}" style="${opts.h ? `--h:${opts.h};` : ""}${opts.hm ? `--hm:${opts.hm};` : ""}">
     <div class="car-track" tabindex="0" aria-label="Imágenes">${figs}</div>
     <div class="car-ui"><button type="button" data-d="-1">${UI[lang].prev}</button><span class="count">1 / ${items.length}</span><button type="button" data-d="1">${UI[lang].next}</button></div>
   </div>`;
@@ -713,6 +737,7 @@ function wireCarousels(auto) {
     const tr = c.querySelector(".car-track"), figs = [...tr.children], count = c.querySelector(".count");
     let i = 0;
     const go = n => { i = (n + figs.length) % figs.length; tr.scrollTo({ left: figs[i].offsetLeft - tr.offsetLeft, behavior: "smooth" }); };
+    figs.forEach(f => { if (!f.classList.contains("go") && !f.classList.contains("vid")) { f.classList.add("adv"); f.addEventListener("click", () => { go(i + 1); stop(); }); } });
     c.querySelectorAll("button[data-d]").forEach(b => b.addEventListener("click", () => { go(i + +b.dataset.d); stop(); }));
     tr.addEventListener("scroll", () => {
       const x = tr.scrollLeft; let best = 0, d = 1e9;
@@ -729,16 +754,16 @@ function wireCarousels(auto) {
 
 function pageHome() {
   menu("home");
-  view.innerHTML = carousel(HERO, { h: "70vh", hm: "56vh" }) +
-    `<div class="feed">` + PROJECTS.map((p, i) => `${i === 0 || PROJECTS[i - 1].group !== p.group ? `<h2 class="group">${p.group === "obra" ? UI[lang].works : UI[lang].lines}</h2>` : ""}
-      <article class="entry ${p.size || ""}">
+  view.innerHTML = carousel(HERO, { h: "70vh", hm: "56vh", hero: true }) +
+    `<div class="grid">` + PROJECTS.map((p, i) => `${i === 0 || PROJECTS[i - 1].group !== p.group ? `<h2 class="group">${p.group === "obra" ? UI[lang].works : UI[lang].lines}</h2>` : ""}
+      <article class="card">
+        <a class="shot" href="#${p.id}" aria-label="${T(p.title)}">${img(p.cover, T(p.title))}</a>
         <div class="meta">
-          <a href="#${p.id}">${T(p.title)}</a>
+          <a class="t" href="#${p.id}">${T(p.title)}</a>
           <span>${T(p.kind)}</span>
           <span>${p.where}</span>
           <span class="yr">${p.year}</span>
         </div>
-        <a class="shot" href="#${p.id}" aria-label="${T(p.title)}">${img(p.cover, T(p.title))}</a>
       </article>`).join("") + `</div>`;
   wireCarousels(true);
   view.querySelectorAll(".car figure.go").forEach(f => f.addEventListener("click", e => {
@@ -749,7 +774,7 @@ function pageHome() {
     if (!ok) ringRipple(f, e.clientX, e.clientY);
     setTimeout(() => { location.hash = id; }, ok ? 1700 : 650);
   }));
-  view.querySelectorAll(".entry .shot").forEach(sh => sh.addEventListener("click", e => {
+  view.querySelectorAll(".card .shot").forEach(sh => sh.addEventListener("click", e => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     e.preventDefault();
     const id = sh.getAttribute("href").slice(1), im = sh.querySelector("img");
