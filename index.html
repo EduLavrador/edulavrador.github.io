@@ -917,8 +917,8 @@ addEventListener("hashchange", route);
   const mx = mc.getContext("2d"), MR = Math.min(2, devicePixelRatio || 1);
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const C = innerWidth < 760 ? 3 : 4;          // px por celda
-  let GW = 0, GH = 0, m, wt, g, por, spk, mot, vet, fl, sa, lw, txt = new Uint8Array(0), img, T = 0, drips = [], dryClock = 0, firstWet = -1, bugs = [], spawnAcc = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, raf = 0, slow = 0, last = 0;
-  const MOLD_T = 60, MOLD_GROW = 75, DRY_AFTER = 120;   // a los 2 minutos sin agua, empieza a secarse           // segundos: cuándo empieza el moho y cuánto tarda en salir del todo
+  let GW = 0, GH = 0, m, wt, g, por, spk, mot, vet, fl, sa, lw, yl, ds, mh, ageing = false, agePaint = 0, txt = new Uint8Array(0), img, T = 0, drips = [], dryClock = 0, firstWet = -1, bugs = [], spawnAcc = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, raf = 0, slow = 0, last = 0;
+  const MOLD_T = 60, MOLD_GROW = 75, DRY_AFTER = 120, YEL_AFTER = 600, YEL_T = 4800;   // la mancha seca empieza a amarillear a los 10 min y llega a vieja en hora y media   // a los 2 minutos sin agua, empieza a secarse           // segundos: cuándo empieza el moho y cuánto tarda en salir del todo
   // ruido determinista por celda
   function h(x, y, s) { let n = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return ((n ^ (n >>> 16)) >>> 0) / 4294967295; }
   function vn(x, y, sc, s) {
@@ -931,7 +931,7 @@ addEventListener("hashchange", route);
     const wr = document.querySelector(".wrap");                                   // medir el contenido, no la propia capa de humedad
     const w = Math.ceil(document.documentElement.clientWidth / C), hh = Math.ceil(Math.max(wr ? wr.offsetTop + wr.offsetHeight + 24 : 0, innerHeight) / C);
     if (w === GW && hh === GH) return;
-    const nl = new Float32Array(w * hh), nf = new Float32Array(w * hh), nsa = new Float32Array(w * hh), nv = new Float32Array(w * hh), no = new Float32Array(w * hh), nm = new Float32Array(w * hh), nw = new Float32Array(w * hh), ng = new Float32Array(w * hh), np = new Float32Array(w * hh), ns = new Float32Array(w * hh);
+    const nyl = new Float32Array(w * hh), nds = new Float32Array(w * hh), nmh = new Float32Array(w * hh), nl = new Float32Array(w * hh), nf = new Float32Array(w * hh), nsa = new Float32Array(w * hh), nv = new Float32Array(w * hh), no = new Float32Array(w * hh), nm = new Float32Array(w * hh), nw = new Float32Array(w * hh), ng = new Float32Array(w * hh), np = new Float32Array(w * hh), ns = new Float32Array(w * hh);
     for (let y = 0; y < hh; y++) for (let x = 0; x < w; x++) {
       const i = y * w + x;
       np[i] = 0.04 + 0.96 * Math.pow(0.45 * vn(x, y, 18, 1) + 0.3 * vn(x, y, 7, 2) + 0.25 * vn(x, y, 2.5, 3), 2.2);   // porosidad
@@ -939,9 +939,9 @@ addEventListener("hashchange", route);
       ns[i] = Math.max(0, (k - 0.42) / 0.58);
       no[i] = 0.5 + 0.7 * vn(x, y, 5, 7) + 0.3 * vn(x, y, 1.5, 9);
       nv[i] = Math.pow(vn(x * 3, y * 0.25, 9, 8), 2.2);                                           // regueros verticales
-      if (m && x < GW && y < GH) { const j = y * GW + x; nm[i] = m[j]; nw[i] = wt[j]; ng[i] = g[j]; nf[i] = fl[j]; nsa[i] = sa[j]; nl[i] = lw[j]; }
+      if (m && x < GW && y < GH) { const j = y * GW + x; nm[i] = m[j]; nw[i] = wt[j]; ng[i] = g[j]; nf[i] = fl[j]; nsa[i] = sa[j]; nl[i] = lw[j]; nyl[i] = yl[j]; nds[i] = ds[j]; nmh[i] = mh[j]; }
     }
-    m = nm; wt = nw; g = ng; por = np; spk = ns; mot = no; vet = nv; fl = nf; sa = nsa; lw = nl; GW = w; GH = hh;
+    m = nm; wt = nw; g = ng; por = np; spk = ns; mot = no; vet = nv; fl = nf; sa = nsa; lw = nl; yl = nyl; ds = nds; mh = nmh; GW = w; GH = hh;
     cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px"; sizeMold();
     img = ctx.createImageData(GW, GH);
     mapText();
@@ -1026,12 +1026,18 @@ addEventListener("hashchange", route);
   }
   function age(dt) {
     NB = [-1, 1, -GW, GW, -GW - 1, -GW + 1, GW - 1, GW + 1];
-    let busy = false;
+    let busy = false; ageing = false;
     dryClock += dt;
     // el frente de secado avanza a tirones: en cada parada deja un anillo de sales
     const pin = Math.max(0, Math.sin(dryClock * 0.35)) ** 6;
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-      const i = y * GW + x; let v = m[i]; if (v < 0.01) continue;
+      const i = y * GW + x; let v = m[i];
+      if (v < 0.01) {                                                       // seca: con el tiempo el cerco amarillea
+        if (ds[i] > 0 && yl[i] < 1) { ageing = true; const k = (T - ds[i] - YEL_AFTER) / YEL_T; if (k > yl[i]) yl[i] = Math.min(1, k); }
+        continue;
+      }
+      if (v > mh[i]) mh[i] = v;                                             // cuánta agua llegó a tener: define la huella de la mancha
+      if (v > 0.05) ds[i] = 0;                                              // mojada otra vez: el amarilleo se detiene, lo amarillo se queda
       busy = true;
       const since = T - lw[i];
       if (since > DRY_AFTER) {
@@ -1039,6 +1045,7 @@ addEventListener("hashchange", route);
         const ev = dt * (0.004 + 0.02 * (1 - Math.min(1, v / 0.4))) * (1.3 - Math.min(0.6, fl[i] * 2));
         const before = v; v = Math.max(0, v - ev); m[i] = v;
         if (before >= 0.06 && v < 0.06) sa[i] = Math.min(1, sa[i] + 0.15 + 0.85 * pin);
+        if (before >= 0.01 && v < 0.01 && mh[i] * (0.55 + 0.9 * por[i]) > 0.22) ds[i] = T;   // aquí hubo mancha de verdad y ya se ha secado (borde irregular, según la pared)
       } else {
         wt[i] += dt;
         if (v > 0.25 && sa[i] > 0) sa[i] = Math.max(0, sa[i] - dt / 6);          // al volver a mojar, las sales se disuelven
@@ -1061,7 +1068,7 @@ addEventListener("hashchange", route);
     const d = img.data;
     for (let y = Y0; y <= Y1; y++) for (let x = X0; x <= X1; x++) {
       const i = y * GW + x, p = i * 4, v = Math.min(m[i], 1.4);
-      if (v < 0.01 && g[i] <= 0 && sa[i] <= 0) { d[p + 3] = 0; continue; }
+      if (v < 0.01 && g[i] <= 0 && sa[i] <= 0 && yl[i] <= 0) { d[p + 3] = 0; continue; }
       const mott = mot[i];                                               // textura de pared
       const ring = Math.exp(-(((v - 0.09) / 0.05) ** 2));                  // cerco donde el agua se detiene
       const salt = sa[i];
@@ -1078,6 +1085,14 @@ addEventListener("hashchange", route);
       const t = ad + as + am + 1e-6;
       d[p] = (122 * ad + 205 * as + mr * am) / t; d[p + 1] = (106 * ad + 196 * as + mg * am) / t; d[p + 2] = (60 * ad + 168 * as + mb * am) / t;
       d[p + 3] = Math.min(0.55, ad + as + am * (1 + 0.6 * dark)) * 255;
+      const Y = yl[i];
+      if (Y > 0 && v < 0.03) {   // mancha vieja: el cerco se tiñe de pardo amarillento donde se secó el agua; el centro, apenas
+        let ed = 0; for (const o of [-2, 2, -2 * GW, 2 * GW, -2 * GW - 2, -2 * GW + 2, 2 * GW - 2, 2 * GW + 2]) { const j = i + o; if (j < 0 || j >= yl.length || yl[j] <= 0) ed++; }
+        const rim = Math.min(1, ed / 3) * (0.45 + 0.55 * por[i]), ay = Y * (0.035 * (0.6 + 0.4 * mott) + 0.3 * rim + 0.06 * salt);
+        const a0 = d[p + 3] / 255, at = a0 + ay;
+        d[p] = (d[p] * a0 + 168 * ay) / at; d[p + 1] = (d[p + 1] * a0 + 128 * ay) / at; d[p + 2] = (d[p + 2] * a0 + 52 * ay) / at;
+        d[p + 3] = Math.min(0.55, at) * 255;
+      }
     }
     ctx.putImageData(img, 0, 0, X0, Y0, X1 - X0 + 1, Y1 - Y0 + 1);
     paintMold(X0, Y0, X1, Y1);
@@ -1096,7 +1111,7 @@ addEventListener("hashchange", route);
       const h1 = hash(i, 1); if (h1 > gm * (0.16 + 0.7 * spk[i])) continue;      // racimos: donde hay motas (spk) y más moho
       const old = Math.min(1, Math.max(0, (wt[i] - MOLD_T - 45) / 90)), dorm = m[i] < 0.08;
       const r = C * (0.18 + 0.95 * hash(i, 2) ** 6) * (0.55 + 0.6 * gm);                    // casi todas pequeñas, alguna gorda
-      const a = Math.min(0.56, (0.24 + 0.36 * old) * Math.min(1, gm * 1.6)) * (dorm ? 0.8 : 1) * (txt[i] === 1 ? 0.8 : 1);   // sobre las letras un poco más leve, sin borde que se note
+      const a = Math.min(0.56, (0.24 + 0.36 * old) * Math.min(1, gm * 1.6)) * (dorm ? 0.65 : 1) * (1 - 0.6 * yl[i]) * (txt[i] === 1 ? 0.8 : 1);   // sobre las letras un poco más leve, sin borde que se note
       const px = (x + hash(i, 3)) * C, py = (y + hash(i, 4)) * C;
       const n = 2 + (hash(i, 5) * 3 | 0);                                                      // cada mota, unos grumos que se solapan: forma irregular
       for (let q = 0; q < n; q++) {
@@ -1135,8 +1150,9 @@ addEventListener("hashchange", route);
       const now = performance.now(), dt = Math.min(2, (now - prev) / 1000); prev = now; T += dt;
       const busy = age(dt);
       if (busy) paint(x0, y0, x1, y1);
+      else if (ageing && T - agePaint > 8) { agePaint = T; paint(x0, y0, x1, y1); }   // el amarilleo es lento: basta con repintar de vez en cuando
       bugTick(dt, busy);
-      if (!busy && !bugs.length) { clearInterval(slow); slow = 0; }
+      if (!busy && !ageing && !bugs.length) { clearInterval(slow); slow = 0; }
     }, 500);
   }
   function run() { if (slow) { clearInterval(slow); slow = 0; } if (!raf) raf = requestAnimationFrame(frame); }
@@ -1158,7 +1174,7 @@ addEventListener("hashchange", route);
   bw.style.cssText = "position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:41;";
   bc.style.cssText = "position:absolute;left:0;top:0;";
   bw.appendChild(bc); document.body.appendChild(bw);
-  const bx = bc.getContext("2d"), BS = innerWidth < 760 ? 0.85 : 1, BUG_T = 180;   // a los 3 minutos
+  const bx = bc.getContext("2d"), BS = innerWidth < 760 ? 0.85 : 1, BUG_T = 180, MAXB = innerWidth < 760 ? 50 : 80;   // en el móvil caben menos   // a los 3 minutos
   let bugRaf = 0, bugLast = 0, scared = [], bOy = 0, bH = 0;
   const spr = new Image(); spr.src = "img/cochinilla.webp"; spr.onload = () => drawBugs();   // foto de Edu, vista desde arriba
   function sizeBugs() { const d = Math.min(2, devicePixelRatio || 1); bH = innerHeight * 2; bc.width = innerWidth * d; bc.height = bH * d; bc.style.width = innerWidth + "px"; bc.style.height = bH + "px"; bx.setTransform(d, 0, 0, d, 0, 0); drawBugs(); }
@@ -1172,16 +1188,16 @@ addEventListener("hashchange", route);
       const i = y * GW + x, v = m[i];
       const px = x * C, py = y * C;
       if (scared.some(z => T - z.t < 90 && Math.hypot(z.x - px, z.y - py) < z.r)) continue;
-      if (txt[i] === 1 && Math.random() > 0.12) continue;
+      if (txt[i] === 1 && Math.random() > 0.4) continue;                 // también se posan en el texto, aunque menos
       if ((v > 0.04 && v < 0.2) || sa[i] > 0.25 || (g[i] > 0.4 && v > 0.03)) return { x: x * C + Math.random() * C, y: y * C + Math.random() * C };
     }
     return null;
   }
   function moist() { let n = 0; for (let y = y0; y <= y1; y += 3) for (let x = x0; x <= x1; x += 3) if (m[y * GW + x] > 0.04) n++; return n; }
-  function bugSize() { const q = Math.random(); return q < 0.22 ? 0.5 + Math.random() * 0.12 : q < 0.92 ? 0.8 + Math.random() * 0.45 : 1.3 + Math.random() * 0.15; }
+  function bugSize() { const q = Math.random(); return q < 0.08 ? 0.74 + Math.random() * 0.08 : q < 0.92 ? 0.88 + Math.random() * 0.24 : 1.14 + Math.random() * 0.1; }   // casi todas de tamaño parecido; pocas crías y pocas grandes
   function newBug(settled) {
     const sz = bugSize(), settledOnes = bugs.filter(b => b.st === 1);
-    const near = settledOnes.length && Math.random() < (sz < 0.7 ? 0.92 : 0.65) ? settledOnes[Math.random() * settledOnes.length | 0] : null;
+    const near = settledOnes.length && Math.random() < (sz < 0.85 ? 0.9 : 0.65) ? settledOnes[Math.random() * settledOnes.length | 0] : null;
     const t = rimSpot(near); if (!t) return null;
     if (settled) return { x: t.x, y: t.y, tx: t.x, ty: t.y, h: Math.random() * 6.3, st: 1, sz, an: 0, fl: 0 };
     // llegan desde los márgenes: entran por un borde de la pantalla, nunca aparecen de golpe
@@ -1197,12 +1213,25 @@ addEventListener("hashchange", route);
   function bugTick(dt, busy) {
     if (calm || firstWet < 0 || !m) return;
     if (T - firstWet > BUG_T && busy) {
-      const cap = Math.min(100, 8 + (moist() / 14 | 0));
+      const cap = Math.min(MAXB, 8 + (moist() / 14 | 0));
       spawnAcc += dt;
       while (spawnAcc > 1.6 && bugs.length < cap) { spawnAcc -= 1.6; const b = newBug(false); if (b) bugs.push(b); else break; }
       if (spawnAcc > 1.6) spawnAcc = 0;
     }
+    if (!busy) bugs.forEach(b => { if (b.st === 1 && b.wd === undefined && Math.random() < dt * 0.08) farewell(b); });   // pared seca: deambulan un rato y se van
+    else bugs.forEach(b => { if (b.wd !== undefined && b.st !== 2) b.wd = undefined; });   // vuelve el agua: se quedan
     if (bugs.length && !bugRaf) { if (moveBugs(dt)) bugRaf = requestAnimationFrame(bugFrame); drawBugs(); }
+  }
+  // antes de irse buscan algo que todavía recuerde al agua: suelen ir a una imagen cercana, se paran y siguen
+  function farewell(b) { b.wd = 20 + Math.random() * 40; const t = byeSpot(b); b.tx = t.x; b.ty = t.y; b.st = 0; }
+  function byeSpot(b) {
+    if (Math.random() < 0.65) {
+      const ims = [...document.querySelectorAll("main img")].map(el => el.getBoundingClientRect()).filter(r => r.width > 40)
+        .map(r => ({ x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height })).filter(r => Math.hypot(r.x + r.w / 2 - b.x, r.y + r.h / 2 - b.y) < 700);
+      if (ims.length) { const r = ims[Math.random() * ims.length | 0]; return { x: r.x + r.w * (0.1 + 0.8 * Math.random()), y: r.y + r.h * (0.1 + 0.8 * Math.random()) }; }
+    }
+    const a = Math.random() * 6.28, d = 40 + Math.random() * 110;
+    return { x: Math.max(10, Math.min(GW * C - 10, b.x + Math.cos(a) * d)), y: Math.max(10, Math.min(GH * C - 10, b.y + Math.sin(a) * d)) };
   }
   function leave(b) {
     const docW = GW * C, docH = GH * C, dl = b.x, dr = docW - b.x, db = docH - b.y, mn = Math.min(dl, dr, db);
@@ -1234,13 +1263,18 @@ addEventListener("hashchange", route);
     let moving = false;
     for (let k = bugs.length - 1; k >= 0; k--) {
       const b = bugs[k];
+      if (b.wd !== undefined && b.st !== 2) { b.wd -= dt; if (b.wd <= 0) { leave(b); b.wd = undefined; } }   // el rato de despedida corre siempre
       if (b.st === 1) {
         // comen: la humedad y el moho bajo ellas se reducen poco a poco
         const i = cell(b.x, b.y);
         if (i >= 0) { m[i] = Math.max(0, m[i] - dt * 0.002); g[i] = Math.max(0, g[i] - dt * 0.003); }
+        if (b.wd !== undefined) {                 // despidiéndose: deambulan, se paran en las imágenes y al final se van
+          if (Math.random() < dt * 0.07) { const t = byeSpot(b); b.tx = t.x; b.ty = t.y; b.st = 0; }
+          continue;
+        }
         if (Math.random() < dt * 0.025) { const t = rimSpot(b); if (t) { b.tx = t.x; b.ty = t.y; b.st = 0; } }
-        // sin humedad alrededor, se van
-        if (Math.random() < dt * 0.2 && i >= 0 && m[i] < 0.02 && sa[i] < 0.2 && g[i] < 0.2) leave(b);
+        // sin humedad alrededor, empiezan a despedirse
+        if (Math.random() < dt * 0.2 && i >= 0 && m[i] < 0.02 && sa[i] < 0.2 && g[i] < 0.2) farewell(b);
         continue;
       }
       moving = true;
@@ -1296,10 +1330,10 @@ addEventListener("hashchange", route);
   let key = null;
   function save() {
     if (!key || !m || firstWet < 0) return;
-    pages[key] = { GW, GH, m, wt, g, sa, fl, lw, por, spk, mot, vet, box: [x0, y0, x1, y1], T, drips, dryClock, firstWet, bugs, scared, at: performance.now() };
+    pages[key] = { GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, box: [x0, y0, x1, y1], T, drips, dryClock, firstWet, bugs, scared, at: performance.now() };
   }
   function restore(p) {
-    ({ GW, GH, m, wt, g, sa, fl, lw, por, spk, mot, vet, T, drips, dryClock, firstWet, bugs, scared } = p);
+    ({ GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, T, drips, dryClock, firstWet, bugs, scared } = p);
     [x0, y0, x1, y1] = p.box;
     cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px"; sizeMold();
     img = ctx.createImageData(GW, GH);
@@ -1312,7 +1346,7 @@ addEventListener("hashchange", route);
     for (let n = 0; n < chunks; n++) { T += cdt; age(cdt); }
     // si ya tocaba, las cochinillas han llegado y están en los cercos
     if (T - firstWet > BUG_T) {
-      const cap = Math.min(100, 8 + (moist() / 14 | 0)), want = Math.min(cap, bugs.length + ((T - firstWet - BUG_T) / 1.6 | 0));
+      const cap = Math.min(MAXB, 8 + (moist() / 14 | 0)), want = Math.min(cap, bugs.length + ((T - firstWet - BUG_T) / 1.6 | 0));
       bugs.forEach(b => { if (b.st !== 2) { const t = rimSpot(b); if (t) { b.x = b.tx = t.x; b.y = b.ty = t.y; } b.st = 1; } });
       bugs = bugs.filter(b => b.st === 1);
       for (let n = bugs.length; n < want; n++) { const b = newBug(true); if (b) bugs.push(b); else break; }
