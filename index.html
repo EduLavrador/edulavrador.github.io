@@ -44,6 +44,18 @@ a:hover { text-decoration-style: wavy; text-decoration-thickness: 1px; text-unde
 .contact a:hover, .infl a:hover { text-decoration-style: wavy; }
 #humedad { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; filter: blur(0.7px); }
 #moho { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; filter: blur(0.6px); }
+/* Cita al entrar: una ficha bibliográfica pequeña, una vez por visita */
+.cita { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(255, 255, 255, 0.6); animation: citaIn 0.35s ease-out; }
+.cita-card { background: var(--paper); border: 1px solid var(--mud); max-width: 340px; width: 100%; padding: 20px 20px 16px; box-shadow: 0 1px 0 var(--rule); }
+.cita-card blockquote { margin: 0 0 14px; font-size: 17px; line-height: 1.5; }
+.cita-card cite { display: block; font-style: normal; font-size: 12px; line-height: 1.5; color: var(--mud); margin-bottom: 18px; }
+.cita-card nav { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; }
+.cita-card nav button { all: unset; cursor: pointer; color: var(--mud); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.cita-card nav a { font-size: 13px; }
+.cita-card nav .cita-x { margin-left: auto; }
+.cita-card nav button:focus-visible, .cita-card nav a:focus-visible { outline: 1px solid var(--mud); outline-offset: 3px; }
+@keyframes citaIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cita { animation: none; } }
 .prose a, .escrito a, .infl a, .big a, .contact a, .box a, .ficha a { text-decoration: underline; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--mud); outline-offset: 3px; }
 img { max-width: 100%; display: block; }
@@ -1324,6 +1336,58 @@ addEventListener("hashchange", route);
 })();
 
 route();
+
+/* Cita al entrar. Una vez por visita: si refrescas o cambias de página no vuelve a salir.
+   Cada cita lleva al proyecto donde ese pensamiento se nota y, si hay ficha fiable, al libro. */
+const CITAS = [
+  { q: "«Se carga del instante presente haciendo desaparecer las amenazas y los espejismos del futuro».",
+    ref: "Clément, G. (2019). <i>Una breve historia del jardín</i>. Gustavo Gili, p. 102.",
+    go: "guadalmedina", book: "https://search.worldcat.org/isbn/9788425232527" },
+  { q: "«La traza brillante, sendas luminosas dejadas por un ser pequeño, insignificante».",
+    ref: "Maillard, C. (2014). <i>La baba del caracol</i>. Vaso Roto, p. 43.",
+    go: "agua-por-favor", book: null },
+  { q: "«Siempre se tratará de alternar entre refugios y contrarrefugios, entre sujeto que observa y sujeto observado».",
+    ref: "Zilio, M. (2022). <i>El libro de las larvas: Cómo nos convertimos en nuestras presas</i>. Cactus, p. 17.",
+    go: "nacimiento-trasladado", book: null },
+  { q: "«En Lavrador, el yo deja de funcionar como la garantía de existencia para ser reemplazado por una condición como la de la 'humedad'».",
+    ref: "Pedro A. Cruz, texto de sala de <i>Humedad, luego cristaliza</i>. Museo Cristo de la Sangre, Murcia, 2026.",
+    go: "humedad-luego-cristaliza", book: null },
+  { q: "«El agua se pide, se suplica».",
+    ref: "Eugenio Rivas y Marta Iranzo, comisarios de <i>Agua, por favor</i>. Sala Chema Cobo, Universidad de Málaga, 2025.",
+    go: "agua-por-favor", book: null }
+];
+(function cita() {
+  try { if (sessionStorage.getItem("citaVista")) return; sessionStorage.setItem("citaVista", "1"); } catch (e) {}
+  const L = {
+    es: { see: "Ver el proyecto", other: "Otra cita", book: "El libro", enter: "Entrar ×", label: "Cita" },
+    en: { see: "See the project", other: "Another quote", book: "The book", enter: "Enter ×", label: "Quote" }
+  };
+  let n = Math.floor(Math.random() * CITAS.length);
+  const box = document.createElement("div"); box.className = "cita";
+  box.setAttribute("role", "dialog"); box.setAttribute("aria-modal", "true");
+  const close = () => { box.remove(); document.removeEventListener("keydown", key); };
+  const key = e => { if (e.key === "Escape") close(); };
+  function draw() {
+    const c = CITAS[n], t = L[lang] || L.es, p = PROJECTS.find(x => x.id === c.go);
+    box.setAttribute("aria-label", t.label);
+    box.innerHTML = `<div class="cita-card"><blockquote>${c.q}</blockquote><cite>${c.ref}</cite><nav>` +
+      (p ? `<button type="button" data-a="go">${t.see}${p ? ": " + T(p.title) : ""}</button>` : "") +
+      (CITAS.length > 1 ? `<button type="button" data-a="other">${t.other}</button>` : "") +
+      (c.book ? `<a href="${c.book}" target="_blank" rel="noopener">${t.book}</a>` : "") +
+      `<button type="button" class="cita-x" data-a="x">${t.enter}</button></nav></div>`;
+    box.querySelector(".cita-x").focus({ preventScroll: true });
+  }
+  box.addEventListener("click", e => {
+    if (e.target === box) return close();
+    e.stopPropagation();                        // dentro de la ficha no se moja la pared
+    const a = e.target.closest("[data-a]"); if (!a) return;
+    if (a.dataset.a === "x") close();
+    else if (a.dataset.a === "other") { n = (n + 1 + Math.floor(Math.random() * (CITAS.length - 1))) % CITAS.length; draw(); }
+    else if (a.dataset.a === "go") { close(); location.hash = CITAS[n].go; }
+  });
+  document.addEventListener("keydown", key);
+  document.body.appendChild(box); draw();
+})();
 </script>
 </body>
 </html>
