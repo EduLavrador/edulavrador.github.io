@@ -1142,12 +1142,14 @@ addEventListener("hashchange", route);
   });
   /* ---------- Cochinillas: a los 5 minutos de la primera humedad llegan y se colocan en los cercos ---------- */
   const bc = document.createElement("canvas"); bc.setAttribute("aria-hidden", "true");
-  bc.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:41;";
-  document.body.appendChild(bc);
+  const bw = document.createElement("div");   // pegada a la página: al hacer scroll las cochinillas se quedan en la pared
+  bw.style.cssText = "position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:41;";
+  bc.style.cssText = "position:absolute;left:0;top:0;";
+  bw.appendChild(bc); document.body.appendChild(bw);
   const bx = bc.getContext("2d"), BS = innerWidth < 760 ? 0.85 : 1, BUG_T = 180;   // a los 3 minutos
-  let bugRaf = 0, bugLast = 0, scared = [];
+  let bugRaf = 0, bugLast = 0, scared = [], bOy = 0, bH = 0;
   const spr = new Image(); spr.src = "img/cochinilla.webp"; spr.onload = () => drawBugs();   // foto de Edu, vista desde arriba
-  function sizeBugs() { const d = devicePixelRatio || 1; bc.width = innerWidth * d; bc.height = innerHeight * d; bc.style.width = innerWidth + "px"; bc.style.height = innerHeight + "px"; bx.setTransform(d, 0, 0, d, 0, 0); drawBugs(); }
+  function sizeBugs() { const d = Math.min(2, devicePixelRatio || 1); bH = innerHeight * 2; bc.width = innerWidth * d; bc.height = bH * d; bc.style.width = innerWidth + "px"; bc.style.height = bH + "px"; bx.setTransform(d, 0, 0, d, 0, 0); drawBugs(); }
   function cell(px, py) { const x = Math.round(px / C), y = Math.round(py / C); return x > 0 && y > 0 && x < GW - 1 && y < GH - 1 ? y * GW + x : -1; }
   function rimSpot(near) {                     // un sitio del cerco: borde húmedo, sales o moho
     for (let k = 0; k < 80; k++) {
@@ -1242,10 +1244,13 @@ addEventListener("hashchange", route);
     return moving;
   }
   function drawBugs() {
-    bx.clearRect(0, 0, innerWidth, innerHeight);
-    const ox = scrollX, oy = scrollY;
+    // la capa cubre la pantalla y media pantalla por arriba y por abajo; se recoloca cada vez que se dibuja
+    const docH = Math.max(GH * C, innerHeight);
+    bOy = Math.max(0, Math.min(scrollY - innerHeight / 2, docH - bH)); bc.style.top = bOy + "px"; bw.style.height = docH + "px";
+    bx.clearRect(0, 0, innerWidth, bH);
+    const ox = 0, oy = bOy;
     bugs.forEach(b => {
-      const x = b.x - ox, y = b.y - oy; if (x < -20 || y < -20 || x > innerWidth + 20 || y > innerHeight + 20) return;
+      const x = b.x - ox, y = b.y - oy; if (x < -20 || y < -20 || x > innerWidth + 20 || y > bH + 20) return;
       const s = BS * b.sz;
       bx.save(); bx.translate(x, y); bx.rotate(b.h);
       bx.fillStyle = "rgba(35, 32, 15, 0.13)"; bx.beginPath(); bx.ellipse(0.6, 1.5, 4.6 * s, 2.3 * s, 0, 0, 6.3); bx.fill();   // sombra
@@ -1311,7 +1316,7 @@ addEventListener("hashchange", route);
     save();
     key = location.hash || "#";
     m = null; GW = GH = 0; x0 = y0 = 1e9; x1 = y1 = -1; drips = []; bugs = []; scared = []; firstWet = -1; T = 0; dryClock = 0; spawnAcc = 0;
-    ctx.clearRect(0, 0, cv.width, cv.height); mx.clearRect(0, 0, mc.width, mc.height); bx.clearRect(0, 0, innerWidth, innerHeight);
+    ctx.clearRect(0, 0, cv.width, cv.height); mx.clearRect(0, 0, mc.width, mc.height); bx.clearRect(0, 0, innerWidth, bH);
     if (pages[key]) restore(pages[key]); else alloc();
     if (carry) { const c = carry; carry = null; wet(c.x + scrollX, c.y + scrollY); }   // y también moja la que encontramos
   };
