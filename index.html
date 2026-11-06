@@ -9,7 +9,7 @@
 {"@context":"https://schema.org","@type":"Person","name":"Edu Lavrador","alternateName":["Eduardo Lavrador","Eduardo Julio Lavrador Jiménez"],"url":"https://edulavrador.es/","image":"https://edulavrador.es/img/og-humedad.jpg","jobTitle":"Artista e investigador","description":"Artista e investigador. Práctica procesual e instalación con agua, plantas y conducciones.","homeLocation":{"@type":"Place","name":"Málaga"},"affiliation":{"@type":"CollegeOrUniversity","name":"Universidad de Murcia"},"sameAs":["https://www.instagram.com/edulavrador/","https://www.researchgate.net/profile/Eduardo-Lavrador-2"]}
 </script>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website">
@@ -65,10 +65,6 @@ img { max-width: 100%; display: block; }
 .car img { height: var(--h, 62vh); width: auto; max-width: none; object-fit: cover; background: var(--mud-soft); }
 .car figcaption { font-family: var(--mono); font-size: 12px; line-height: 1.45; color: var(--ink); opacity: 0.75; max-width: 46ch; }
 .car figure.go { cursor: pointer; position: relative; overflow: hidden; }
-.ripple { position: absolute; width: 0; height: 0; transform: translate(-50%, -50%); border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9); box-shadow: 0 0 6px rgba(255,255,255,0.35); pointer-events: none; opacity: 0; animation: ripple 1.2s cubic-bezier(.2,.6,.3,1) forwards; }
-.ripple.r2 { animation-delay: 0.14s; }
-.ripple.r3 { animation-delay: 0.28s; border-width: 1px; }
-@keyframes ripple { 0% { width: 0; height: 0; opacity: 0.95; } 100% { width: 360px; height: 360px; opacity: 0; } }
 .car-ui { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--mud); }
 .car-ui button { background: none; border: 0; color: var(--mud); font: inherit; padding: 4px 0; cursor: pointer; text-underline-offset: 3px; }
 .car-ui button:hover { text-decoration: underline; }
@@ -815,102 +811,9 @@ function pageHome() {
         <a class="shot" href="#${p.id}" aria-label="${T(p.title)}">${img(p.cover, T(p.title))}</a>
       </article>`).join("") + `</div>`;
   wireCarousels(true);
-  view.querySelectorAll(".car figure.go").forEach(f => f.addEventListener("click", e => {
-    const id = f.dataset.go;
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { location.hash = id; return; }
-    const im = f.querySelector("img");
-    const ok = im && waterRipple(f, im, e.clientX, e.clientY);
-    if (!ok) ringRipple(f, e.clientX, e.clientY);
-    setTimeout(() => { location.hash = id; }, ok ? 280 : 200);
-  }));
-  view.querySelectorAll(".entry .shot").forEach(sh => sh.addEventListener("click", e => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    e.preventDefault();
-    const id = sh.getAttribute("href").slice(1), im = sh.querySelector("img");
-    const ok = im && waterRipple(sh, im, e.clientX, e.clientY);
-    if (!ok) ringRipple(sh, e.clientX, e.clientY);
-    setTimeout(() => { location.hash = id; }, ok ? 280 : 200);
-  }));
+  view.querySelectorAll(".car figure.go").forEach(f => f.addEventListener("click", () => { location.hash = f.dataset.go; }));
 }
 
-/* Ondas de agua: una piedra cae en la imagen y las ondas se desbordan por toda la pantalla.
-   La simulación es más grande que la pantalla: las ondas salen y se apagan fuera, sin rebotar. */
-let waterBusy = false;
-function waterRipple(fig, im, px, py) {
-  try {
-    if (waterBusy) return true;
-    const vw = innerWidth, vh = innerHeight, ir = im.getBoundingClientRect();
-    const S = vw < 760 ? 1.5 : 2, VW = Math.ceil(vw / S), VH = Math.ceil(vh / S), P = 70, W = VW + 2 * P, H = VH + 2 * P;
-    const ix = Math.round(ir.left / S), iy = Math.round(ir.top / S), iw = Math.max(1, Math.round(ir.width / S)), ih = Math.max(1, Math.round(ir.height / S));
-    const src = document.createElement("canvas"); src.width = iw; src.height = ih;
-    const sc = src.getContext("2d"), nw = im.naturalWidth, nh = im.naturalHeight, k = Math.max(iw / nw, ih / nh);
-    sc.imageSmoothingQuality = "high";
-    sc.drawImage(im, (iw - nw * k) / 2, (ih - nh * k) / 2, nw * k, nh * k);
-    const base = sc.getImageData(0, 0, iw, ih).data;
-    waterBusy = true;
-    const cv = document.createElement("canvas"); cv.width = VW; cv.height = VH;
-    cv.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:50;transition:opacity 1.2s ease;";
-    document.body.appendChild(cv);
-    const ctx = cv.getContext("2d"), out = ctx.createImageData(VW, VH), o = out.data;
-    let a = new Float32Array(W * H), b = new Float32Array(W * H);
-    const damp = new Float32Array(W * H);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      const d = Math.min(x, y, W - 1 - x, H - 1 - y), t = d >= P ? 0 : (P - d) / P;
-      damp[y * W + x] = 0.99 * (1 - 0.3 * t * t);
-    }
-    const cx = Math.round(px / S) + P, cy = Math.round(py / S) + P, R = 6;
-    for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
-      const x = cx + i, y = cy + j, d = Math.sqrt(i * i + j * j);
-      if (x > 1 && y > 1 && x < W - 2 && y < H - 2 && d <= R) a[y * W + x] += 1300 * Math.cos((d / R) * Math.PI / 2);
-    }
-    const startHash = location.hash, t0 = performance.now();
-    let imgOn = true, fading = false;
-    const offImg = () => { imgOn = false; };
-    ["scroll", "wheel", "touchmove"].forEach(ev => addEventListener(ev, offImg, { passive: true, capture: true }));
-    setTimeout(() => ["scroll", "wheel", "touchmove"].forEach(ev => removeEventListener(ev, offImg, { capture: true })), 6000);
-    const frame = t => {
-      if (!cv.isConnected) { waterBusy = false; return; }
-      for (let n = 0; n < 3; n++) {
-        for (let y = 1; y < H - 1; y++) for (let x = 1, i = y * W + 1; x < W - 1; x++, i++)
-          b[i] = ((a[i - 1] + a[i + 1] + a[i - W] + a[i + W]) * 0.5 - b[i]) * damp[i];
-        const tmp = a; a = b; b = tmp;
-      }
-      if (imgOn) {
-        const r2 = im.getBoundingClientRect();
-        if (location.hash !== startHash || !im.isConnected || Math.abs(r2.left - ir.left) > 1 || Math.abs(r2.top - ir.top) > 1) imgOn = false;
-      }
-      for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
-        const i = (y + P) * W + x + P, q = (y * VW + x) * 4;
-        const dx = a[i - 1] - a[i + 1], dy = a[i - W] - a[i + W], l = (dx + dy) * 0.09;
-        if (imgOn && x >= ix && x < ix + iw && y >= iy && y < iy + ih) {
-          let sx = x - ix + (dx * 0.05 | 0), sy = y - iy + (dy * 0.05 | 0);
-          sx = sx < 0 ? 0 : sx >= iw ? iw - 1 : sx; sy = sy < 0 ? 0 : sy >= ih ? ih - 1 : sy;
-          const si = (sy * iw + sx) * 4;
-          o[q] = base[si] + l; o[q + 1] = base[si + 1] + l; o[q + 2] = base[si + 2] + l * 1.05; o[q + 3] = 255;
-        } else {
-          const al = Math.abs(l);
-          if (al < 1.2) { o[q + 3] = 0; continue; }
-          if (l > 0) { o[q] = 255; o[q + 1] = 255; o[q + 2] = 250; } else { o[q] = 70; o[q + 1] = 64; o[q + 2] = 20; }
-          o[q + 3] = al * 5 > 110 ? 110 : al * 5;
-        }
-      }
-      ctx.putImageData(out, 0, 0);
-      const el = t - t0;
-      if (el > 4200 && !fading) { fading = true; cv.style.opacity = "0"; }
-      if (el < 5600) requestAnimationFrame(frame); else { cv.remove(); waterBusy = false; }
-    };
-    requestAnimationFrame(frame);
-    return true;
-  } catch (err) { waterBusy = false; return false; }
-}
-function ringRipple(f, px, py) {
-  const r = f.getBoundingClientRect();
-  ["", " r2", " r3"].forEach(c => {
-    const d = document.createElement("span"); d.className = "ripple" + c;
-    d.style.left = (px - r.left) + "px"; d.style.top = (py - r.top) + "px";
-    f.appendChild(d); setTimeout(() => d.remove(), 1600);
-  });
-}
 
 function pageProject(p) {
   menu("proyectos");
