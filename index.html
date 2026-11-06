@@ -1098,13 +1098,17 @@ addEventListener("hashchange", route);
     }, 500);
   }
   function run() { if (slow) { clearInterval(slow); slow = 0; } if (!raf) raf = requestAnimationFrame(frame); }
-  const inert = "a, button, input, textarea, select, label, video, iframe, .car figure.go, .car figure.adv, .car-track, .lang, .yt-play";
+  const inert = "input, textarea, select, video, iframe, .yt-play";   // donde no se moja: campos y vídeos
+  let carry = null;                             // el agua que viaja con el dedo a la página siguiente
   document.addEventListener("click", e => {
     if (e.target.closest(inert)) return;
     if (String(getSelection ? getSelection() : "").length) return;
     askMotion();
     if (bugs.length) poke(e.pageX, e.pageY);
-    wet(e.pageX, e.pageY);
+    wet(e.pageX, e.pageY);                      // se queda en la página que dejamos
+    const a = e.target.closest("a[href^='#'], .car figure.go");
+    const to = a && (a.dataset.go ? "#" + a.dataset.go : a.getAttribute("href"));
+    if (a && to !== (location.hash || "#") && !e.metaKey && !e.ctrlKey && !e.shiftKey) carry = { x: e.clientX, y: e.clientY };
   });
   /* ---------- Cochinillas: a los 5 minutos de la primera humedad llegan y se colocan en los cercos ---------- */
   const bc = document.createElement("canvas"); bc.setAttribute("aria-hidden", "true");
@@ -1279,6 +1283,7 @@ addEventListener("hashchange", route);
     m = null; GW = GH = 0; x0 = y0 = 1e9; x1 = y1 = -1; drips = []; bugs = []; scared = []; firstWet = -1; T = 0; dryClock = 0; spawnAcc = 0;
     ctx.clearRect(0, 0, cv.width, cv.height); bx.clearRect(0, 0, innerWidth, innerHeight);
     if (pages[key]) restore(pages[key]); else alloc();
+    if (carry) { const c = carry; carry = null; wet(c.x + scrollX, c.y + scrollY); }   // y también moja la que encontramos
   };
   new ResizeObserver(() => { if (m) alloc(); }).observe(document.body);
 })();
