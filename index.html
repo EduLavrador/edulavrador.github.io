@@ -1024,7 +1024,7 @@ addEventListener("hashchange", route);
     mapText();
     paint(0, 0, GW - 1, GH - 1);
   }
-  // dónde hay texto: ahí el moho se queda más suave y las cochinillas casi nunca se posan
+  // dónde hay texto: las cochinillas casi nunca se posan ahí (el moho crece igual en todas partes)
   function mapText() {
     if (!GW) return;
     txt = new Uint8Array(GW * GH);
@@ -1148,9 +1148,8 @@ addEventListener("hashchange", route);
       // moho: de blanco grisáceo a gris verdoso, y con el tiempo puntos oscuros
       const gm = g[i], old = Math.min(1, Math.max(0, (wt[i] - MOLD_T - 45) / 90));
       const dorm = v < 0.08 ? 1 : 0;
-      const am = 0.3 * gm * (0.3 + 0.7 * spk[i]) * (0.6 + 0.4 * mott) * (dorm ? 0.75 : 1) * (txt[i] === 1 ? 0.65 : 1);
-      const onTxt = txt[i] === 1;
-      const dark = old * (spk[i] > 0.62 ? 1 : 0.25) * gm * (onTxt ? 0.35 : 1);
+      const am = 0.3 * gm * (0.3 + 0.7 * spk[i]) * (0.6 + 0.4 * mott) * (dorm ? 0.75 : 1);
+      const dark = old * (spk[i] > 0.62 ? 1 : 0.25) * gm;
       let mr = 128 - 34 * gm - 44 * dark, mg = 134 - 30 * gm - 44 * dark, mb = 108 - 26 * gm - 36 * dark;
       if (dorm) { const gr = (mr + mg + mb) / 3; mr = mr * 0.5 + gr * 0.5; mg = mg * 0.5 + gr * 0.5; mb = mb * 0.5 + gr * 0.5 + 4; }
       const t = ad + as + am + 1e-6;
