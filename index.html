@@ -43,7 +43,7 @@ a { color: var(--mud); font-weight: 700; text-underline-offset: 3px; text-decora
 a:hover { text-decoration-style: wavy; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .contact a:hover, .infl a:hover { text-decoration-style: wavy; }
 #humedad { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; filter: blur(0.7px); }
-#moho { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; }
+#moho { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; filter: blur(0.6px); }
 .prose a, .escrito a, .infl a, .big a, .contact a, .box a, .ficha a { text-decoration: underline; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--mud); outline-offset: 3px; }
 img { max-width: 100%; display: block; }
@@ -1086,8 +1086,12 @@ addEventListener("hashchange", route);
       const r = C * (0.18 + 0.95 * hash(i, 2) ** 6) * (0.55 + 0.6 * gm);                    // casi todas pequeñas, alguna gorda
       const a = Math.min(0.56, (0.24 + 0.36 * old) * Math.min(1, gm * 1.6)) * (dorm ? 0.8 : 1) * (txt[i] === 1 ? 0.8 : 1);   // sobre las letras un poco más leve, sin borde que se note
       const px = (x + hash(i, 3)) * C, py = (y + hash(i, 4)) * C;
-      mx.fillStyle = dorm ? `rgba(58,58,54,${a})` : `rgba(40,42,28,${a})`;
-      mx.beginPath(); mx.arc(px, py, r, 0, 6.2832); mx.fill();
+      const n = 2 + (hash(i, 5) * 3 | 0);                                                      // cada mota, unos grumos que se solapan: forma irregular
+      for (let q = 0; q < n; q++) {
+        const ang = hash(i, 6 + q) * 6.2832, off = r * 0.55 * hash(i, 9 + q), rq = r * (0.45 + 0.5 * hash(i, 12 + q));
+        mx.fillStyle = dorm ? `rgba(58,58,54,${a * 0.6})` : `rgba(40,42,28,${a * 0.6})`;
+        mx.beginPath(); mx.ellipse(px + Math.cos(ang) * off, py + Math.sin(ang) * off, rq, rq * (0.6 + 0.4 * hash(i, 15 + q)), ang, 0, 6.2832); mx.fill();
+      }
     }
     mx.restore();
   }
