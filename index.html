@@ -525,8 +525,8 @@ const PROJECTS = [
   PROJECTS.length = 0;
   ORDER.forEach(([id, g, sz]) => { const p = byId[id]; p.group = g; p.size = sz; PROJECTS.push(p); });
   byId["guadalmedina"].field = {
-    es: [["Superficie", "Unos 50 m²"], ["Origen", "Rotura de la acequia oeste; el agua cruza el pavimento hasta la acequia este"], ["Aves", "Cigüeñuelas, garzas, ánades"], ["Insectos", "<i>Dytiscus marginalis</i>, ninfas de artrópodos, colémbolos"], ["Moluscos", "<i>Lymnaea</i> sp."], ["Crustáceos", "Cangrejo rojo de río (invasora)"], ["Muestras", "Agua y suelo; medición de pH"], ["Equipo", "Botas de agua, recipientes de vidrio, pala de jardinero"]],
-    en: [["Area", "About 50 m²"], ["Origin", "Break in the west channel; water crosses the paving to the east channel"], ["Birds", "Black-winged stilts, herons, ducks"], ["Insects", "<i>Dytiscus marginalis</i>, arthropod nymphs, springtails"], ["Molluscs", "<i>Lymnaea</i> sp."], ["Crustaceans", "Red swamp crayfish (invasive)"], ["Samples", "Water and soil; pH measurement"], ["Kit", "Wellington boots, glass jars, garden trowel"]]
+    es: [["Superficie", "Unos 50 m²"], ["Origen", "Rotura de la acequia oeste; el agua cruza el pavimento hasta la acequia este"], ["Aves", "Cigüeñuelas, garzas, ánades"], ["Insectos", "<i>Dytiscus marginalis</i>, ninfas de artrópodos, colémbolos"], ["Moluscos", "<i>Lymnaea</i> sp."], ["Crustáceos", "Cangrejo rojo de río (invasora)"], ["Muestras", "Agua y suelo; medición de pH"]],
+    en: [["Area", "About 50 m²"], ["Origin", "Break in the west channel; water crosses the paving to the east channel"], ["Birds", "Black-winged stilts, herons, ducks"], ["Insects", "<i>Dytiscus marginalis</i>, arthropod nymphs, springtails"], ["Molluscs", "<i>Lymnaea</i> sp."], ["Crustaceans", "Red swamp crayfish (invasive)"], ["Samples", "Water and soil; pH measurement"]]
   };
   const r = byId["rigor-plastic-humusidades"];
   r.images.unshift(["yt:2L5XqU9hP6s", { es: "Rigor Plastic. Vídeo", en: "Rigor Plastic. Video" }]);
@@ -1175,7 +1175,7 @@ addEventListener("hashchange", route);
   bw.style.cssText = "position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:41;";
   bc.style.cssText = "position:absolute;left:0;top:0;";
   bw.appendChild(bc); document.body.appendChild(bw);
-  const bx = bc.getContext("2d"), BS = innerWidth < 760 ? 0.85 : 1, BUG_T = 180, MAXB = innerWidth < 760 ? 50 : 80;   // en el móvil caben menos   // a los 3 minutos
+  const bx = bc.getContext("2d"), BS = innerWidth < 760 ? 0.85 : 1, BUG_T = 180, MAXB = 100;   // a los 3 minutos
   let bugRaf = 0, bugLast = 0, scared = [], bOy = 0, bH = 0;
   const spr = new Image(); spr.src = "img/cochinilla.webp"; spr.onload = () => drawBugs();   // foto de Edu, vista desde arriba
   function sizeBugs() { const d = Math.min(2, devicePixelRatio || 1); bH = innerHeight * 2; bc.width = innerWidth * d; bc.height = bH * d; bc.style.width = innerWidth + "px"; bc.style.height = bH + "px"; bx.setTransform(d, 0, 0, d, 0, 0); drawBugs(); }
