@@ -945,6 +945,7 @@ addEventListener("hashchange", route);
     m = nm; wt = nw; g = ng; por = np; spk = ns; mot = no; vet = nv; fl = nf; sa = nsa; lw = nl; yl = nyl; ds = nds; mh = nmh; GW = w; GH = hh;
     cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px"; sizeMold();
     img = ctx.createImageData(GW, GH);
+    tiles();
     mapText();
     paint(0, 0, GW - 1, GH - 1);
   }
@@ -960,7 +961,20 @@ addEventListener("hashchange", route);
       }
     });
   }
-  function grow(x, y) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; }
+  /* La pared se calcula por parcelas de 16×16 celdas: solo las que tienen agua (o una mancha que todavía envejece).
+     Así dos manchas lejanas no obligan a revisar toda la página seca que hay entre ellas. */
+  const TS = 16; let TW = 0, TH = 0, live = new Uint8Array(0), dirty = new Uint8Array(0);
+  function tiles() { TW = Math.ceil(GW / TS); TH = Math.ceil(GH / TS); live = new Uint8Array(TW * TH); dirty = new Uint8Array(TW * TH);
+    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { const i = y * GW + x; if (m[i] >= 0.01 || (ds[i] > 0 && yl[i] < 1)) live[(y / TS | 0) * TW + (x / TS | 0)] = 1; } }
+  function act(x, y) { const t = (y / TS | 0) * TW + (x / TS | 0); live[t] = 1; dirty[t] = 1; }
+  function grow(x, y) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; act(x, y); }
+  function liveTiles() { const L = []; for (let t = 0; t < live.length; t++) if (live[t]) L.push(t); return L; }
+  function paintDirty(all) {
+    for (let t = 0; t < dirty.length; t++) if (dirty[t] || (all && live[t])) {
+      dirty[t] = 0; const tx = (t % TW) * TS, ty = (t / TW | 0) * TS;
+      paint(tx, ty, Math.min(GW - 1, tx + TS - 1), Math.min(GH - 1, ty + TS - 1));
+    }
+  }
   function wet(px, py) {
     alloc();
     if (firstWet < 0) firstWet = T;
@@ -971,10 +985,11 @@ addEventListener("hashchange", route);
       const d = Math.hypot(i, j) / (R * rr); if (d > 1) continue;
       const k = y * GW + x; m[k] += 1.0 * (1 - d * d) * (0.6 + 0.8 * por[k]); lw[k] = T; grow(x, y);
     }
-    if (calm) { for (let n = 0; n < 160; n++) step(); paint(x0, y0, x1, y1); return; }
+    if (calm) { for (let n = 0; n < 160; n++) step(); paintDirty(true); return; }
     run();
   }
   let NB = [], NW = [0.08, 0.08, 0.08, 0.08, 0.045, 0.045, 0.045, 0.045];
+  const DX = [-1, 1, 0, 0, -1, 1, -1, 1], DY = [0, 0, -1, 1, -1, -1, 1, 1];
   // hacia dónde está "abajo": en el móvil lo dice el acelerómetro; sin sensor, hacia abajo de la pantalla
   let GX = 0, GY = 1, GM = 1, sensed = false, flip = 0, asked = false;
   function onMotion(e) {
@@ -998,14 +1013,17 @@ addEventListener("hashchange", route);
   }
   function step() {
     NB = [-1, 1, -GW, GW, -GW - 1, -GW + 1, GW - 1, GW + 1];
-    const X0 = Math.max(1, x0 - 1), Y0 = Math.max(1, y0 - 1), X1 = Math.min(GW - 2, x1 + 1), Y1 = Math.min(GH - 2, y1 + 1);
     let moved = 0;
+    for (const t of liveTiles()) {
+    const tx = (t % TW) * TS, ty = (t / TW | 0) * TS, X0 = Math.max(1, tx), Y0 = Math.max(1, ty), X1 = Math.min(GW - 2, tx + TS - 1), Y1 = Math.min(GH - 2, ty + TS - 1);
+    let tm = 0;
     for (let y = Y1; y >= Y0; y--) for (let x = X0; x <= X1; x++) {
       const i = y * GW + x, v = m[i]; if (v < 0.06) continue;
       // capilaridad: hacia los vecinos más secos, según su porosidad y con algo de azar (así no salen formas geométricas)
       for (let q = 0; q < 8; q++) {
         const j = i + NB[q], d = v - m[j]; if (d <= 0.03) continue;
-        const f = d * NW[q] * por[j] * (0.35 + Math.random() * 0.9) * (v > 0.12 ? 1 : 0.35); m[i] -= f; m[j] += f; moved += f; if (f > 0.004) lw[j] = T;
+        const f = d * NW[q] * por[j] * (0.35 + Math.random() * 0.9) * (v > 0.12 ? 1 : 0.35); m[i] -= f; m[j] += f; tm += f; if (f > 0.004) lw[j] = T;
+        const jx = x + DX[q], jy = y + DY[q]; if (jx < X0 || jx > X1 || jy < Y0 || jy > Y1) grow(jx, jy);   // el agua pasa a la parcela vecina
       }
       // gravedad: lo que está muy mojado escurre hacia abajo, sobre todo por las vetas de la pared
       if (v > 0.32 && GM > 0.08) {
@@ -1013,16 +1031,17 @@ addEventListener("hashchange", route);
         const sx = GX > 0 ? 1 : -1, sy = GY > 0 ? GW : -GW, wx = Math.abs(GX), wy = Math.abs(GY);
         const jx = i + sx, jy = i + sy;
         const fx = F * wx * (0.4 + por[jx]), fy = F * wy * (0.4 + por[jy]);
-        m[i] -= fx + fy; m[jx] += fx; m[jy] += fy; moved += fx + fy; fl[jx] += fx; fl[jy] += fy;
+        m[i] -= fx + fy; m[jx] += fx; m[jy] += fy; tm += fx + fy; fl[jx] += fx; fl[jy] += fy;
+        if (x + sx < X0 || x + sx > X1) grow(x + sx, y); if (y + (GY > 0 ? 1 : -1) < Y0 || y + (GY > 0 ? 1 : -1) > Y1) grow(x, y + (GY > 0 ? 1 : -1));
         if (fx > 0.004) lw[jx] = T; if (fy > 0.004) lw[jy] = T;
         // en el borde "bajo" de una zona saturada, a veces se suelta una gota que corre en la dirección de la gravedad
         const ahead = Math.round(y + GY * 2) * GW + Math.round(x + GX * 2);
         if (v > 0.75 && m[ahead] < 0.15 && drips.length < 40 && Math.random() < 0.004 * (0.3 + vet[i]) * GM) { m[i] -= 0.35; drips.push({ x: x + 0.5 + GX, y: y + 0.5 + GY, w: 0.35 + v * 0.3 }); }
-        if (y + 1 > y1) y1 = y + 1;
       }
     }
-    // ampliar la caja activa un poco
-    x0 = Math.max(1, x0 - 1); y0 = Math.max(1, y0 - 1); x1 = Math.min(GW - 2, x1 + 1); y1 = Math.min(GH - 2, y1 + 1);
+    if (tm > 0) dirty[t] = 1;
+    moved += tm;
+    }
     return moved;
   }
   function age(dt) {
@@ -1031,12 +1050,16 @@ addEventListener("hashchange", route);
     dryClock += dt;
     // el frente de secado avanza a tirones: en cada parada deja un anillo de sales
     const pin = Math.max(0, Math.sin(dryClock * 0.35)) ** 6;
-    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    for (const t of liveTiles()) {
+    const tx = (t % TW) * TS, ty = (t / TW | 0) * TS, X1 = Math.min(GW - 1, tx + TS - 1), Y1 = Math.min(GH - 1, ty + TS - 1);
+    let still = false, wetT = false;
+    for (let y = ty; y <= Y1; y++) for (let x = tx; x <= X1; x++) {
       const i = y * GW + x; let v = m[i];
       if (v < 0.01) {                                                       // seca: con el tiempo el cerco amarillea
-        if (ds[i] > 0 && yl[i] < 1) { ageing = true; const k = (T - ds[i] - YEL_AFTER) / YEL_T; if (k > yl[i]) yl[i] = Math.min(1, k); }
+        if (ds[i] > 0 && yl[i] < 1) { ageing = still = true; const k = (T - ds[i] - YEL_AFTER) / YEL_T; if (k > yl[i]) yl[i] = Math.min(1, k); }
         continue;
       }
+      still = wetT = true;
       if (v > mh[i]) mh[i] = v;                                             // cuánta agua llegó a tener: define la huella de la mancha
       if (v > 0.05) ds[i] = 0;                                              // mojada otra vez: el amarilleo se detiene, lo amarillo se queda
       busy = true;
@@ -1060,6 +1083,9 @@ addEventListener("hashchange", route);
           for (let q = 0; q < 8; q++) { const j = i + NB[q]; if (g[j] === 0 && m[j] > 0.2 && Math.random() < dt * (q < 4 ? 0.09 : 0.06) * (0.2 + spk[j] + por[j])) g[j] = 0.02; }
         }
       } else if (wt[i] > MOLD_T && Math.random() < dt * 0.0009 * (0.2 + spk[i]) * (0.15 + 1.8 * lower)) g[i] = 0.02;   // brota un punto
+    }
+    if (!still) { live[t] = 0; dirty[t] = 1; }                              // parcela ya quieta: un último repintado y se olvida
+    else if (wetT) dirty[t] = 1;
     }
     return busy;
   }
@@ -1139,7 +1165,7 @@ addEventListener("hashchange", route);
     const dt = Math.min(0.1, (t - (last || t)) / 1000); last = t;
     T += dt;
     let mv = 0; for (let n = 0; n < 3; n++) { mv += step(); drip(); }
-    const busy = age(dt); paint(x0, y0, x1, y1); bugTick(dt, busy);
+    const busy = age(dt); paintDirty(); bugTick(dt, busy);
     raf = mv > 0.002 || drips.length ? requestAnimationFrame(frame) : 0;
     if (!raf) { last = 0; startSlow(); }
   }
@@ -1150,8 +1176,8 @@ addEventListener("hashchange", route);
       if (document.hidden) { prev = performance.now(); return; }
       const now = performance.now(), dt = Math.min(2, (now - prev) / 1000); prev = now; T += dt;
       const busy = age(dt);
-      if (busy) paint(x0, y0, x1, y1);
-      else if (ageing && T - agePaint > 8) { agePaint = T; paint(x0, y0, x1, y1); }   // el amarilleo es lento: basta con repintar de vez en cuando
+      if (busy) paintDirty();
+      else if (ageing && T - agePaint > 8) { agePaint = T; paintDirty(true); }   // el amarilleo es lento: basta con repintar de vez en cuando
       bugTick(dt, busy);
       if (!busy && !ageing && !bugs.length) { clearInterval(slow); slow = 0; }
     }, 500);
@@ -1338,6 +1364,7 @@ addEventListener("hashchange", route);
     [x0, y0, x1, y1] = p.box;
     cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px"; sizeMold();
     img = ctx.createImageData(GW, GH);
+    tiles();
     mapText();
     // el tiempo que hemos estado fuera también ha pasado aquí
     let away = Math.min(1800, (performance.now() - p.at) / 1000);
