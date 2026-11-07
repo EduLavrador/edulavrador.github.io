@@ -951,7 +951,7 @@ addEventListener("hashchange", route);
     img = ctx.createImageData(GW, GH);
     tiles();
     mapText();
-    paint(0, 0, GW - 1, GH - 1);
+    dirty.fill(1); paintDirty();
   }
   // dónde hay texto: las cochinillas casi nunca se posan ahí (el moho crece igual en todas partes)
   function mapText() {
@@ -973,11 +973,21 @@ addEventListener("hashchange", route);
   function act(x, y) { const t = (y / TS | 0) * TW + (x / TS | 0); live[t] = 1; dirty[t] = 1; }
   function grow(x, y) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; act(x, y); }
   function liveTiles() { const L = []; for (let t = 0; t < live.length; t++) if (live[t]) L.push(t); return L; }
-  function paintDirty(all) {
-    for (let t = 0; t < dirty.length; t++) if (dirty[t] || (all && live[t])) {
+  // pintar a ratos: si hay mucho que repintar, se reparte en varios fotogramas para no dar tirones
+  let draining = false;
+  function paintSome(ms) {
+    const t0 = performance.now();
+    for (let t = 0; t < dirty.length; t++) if (dirty[t]) {
       dirty[t] = 0; const tx = (t % TW) * TS, ty = (t / TW | 0) * TS;
       paint(tx, ty, Math.min(GW - 1, tx + TS - 1), Math.min(GH - 1, ty + TS - 1));
+      if (performance.now() - t0 > ms) return false;
     }
+    return true;
+  }
+  function drain() { if (!m || paintSome(8)) { draining = false; return; } requestAnimationFrame(drain); }
+  function paintDirty(all) {                    // lo que haya cambiado; si es mucho, el resto en los fotogramas siguientes
+    if (all) for (let t = 0; t < live.length; t++) if (live[t]) dirty[t] = 1;
+    if (!paintSome(12) && !draining) { draining = true; requestAnimationFrame(drain); }
   }
   function wet(px, py) {
     alloc();
@@ -1541,7 +1551,7 @@ addEventListener("hashchange", route);
   let key = null;
   function save() {
     if (!key || !m || firstWet < 0) return;
-    pages[key] = { GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, box: [x0, y0, x1, y1], T, drips, dryClock, firstWet, bugs, scared, snails, at: performance.now() };
+    pages[key] = { GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, box: [x0, y0, x1, y1], T, drips, dryClock, firstWet, bugs, scared, snails, at: Date.now() };
   }
   function restore(p) {
     ({ GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, T, drips, dryClock, firstWet, bugs, scared } = p);
@@ -1551,27 +1561,68 @@ addEventListener("hashchange", route);
     img = ctx.createImageData(GW, GH);
     tiles();
     mapText();
-    // el tiempo que hemos estado fuera también ha pasado aquí
-    let away = Math.min(1800, (performance.now() - p.at) / 1000);
-    for (let n = 0, N = Math.min(90, away * 10 | 0); n < N; n++) { step(); drip(); }
-    drips = [];
-    const chunks = Math.min(60, Math.ceil(away / 2)), cdt = chunks ? away / chunks : 0;
-    for (let n = 0; n < chunks; n++) { T += cdt; age(cdt); }
-    // si ya tocaba, las cochinillas han llegado y están en los cercos
-    if (T - firstWet > BUG_T) {
-      const cap = Math.min(MAXB, 8 + (moist() / 14 | 0)), want = Math.min(cap, bugs.length + ((T - firstWet - BUG_T) / 1.6 | 0));
-      bugs.forEach(b => { if (b.st !== 2) { const t = rimSpot(b); if (t) { b.x = b.tx = t.x; b.y = b.ty = t.y; } b.st = 1; } });
-      bugs = bugs.filter(b => b.st === 1);
-      for (let n = bugs.length; n < want; n++) { const b = newBug(true); if (b) bugs.push(b); else break; }
-    }
     alloc();                                   // por si la página ha cambiado de tamaño
-    paint(0, 0, GW - 1, GH - 1);
+    dirty.fill(1); paintDirty();
     startSlow();
     if ((bugs.length || snails.length) && !bugRaf) bugRaf = requestAnimationFrame(bugFrame);
+    catchUp((Date.now() - p.at) / 1000);       // el tiempo que hemos estado fuera también ha pasado aquí
   }
+  /* El tiempo sigue pasando aunque no se mire. Al volver a la pestaña (o a una página que ya estaba mojada)
+     la pared se pone al día: se adelanta a saltos y repartido en varios fotogramas, así la página no se queda pillada
+     y se ve envejecer deprisa. Con dos horas basta: para entonces todo está seco y amarillo. */
+  let hidAt = 0, cu = 0;
+  function catchUp(away) {
+    away = Math.min(7200, away);
+    if (!m || firstWet < 0 || away < 1) return;
+    const id = ++cu;
+    if (raf) { cancelAnimationFrame(raf); raf = 0; } if (slow) { clearInterval(slow); slow = 0; }
+    const N = Math.min(90, away * 10 | 0), chunks = Math.ceil(away / Math.max(2, away / 240)), cdt = away / chunks;
+    let w = 0, n = 0, bugWet = 0, snWet = 0, dryFor = 0;
+    const slice = () => {
+      if (id !== cu || !m) return;                // se cambió de página a mitad: se deja
+      const t0 = performance.now();
+      while (w < N && performance.now() - t0 < 6) { step(); drip(); w++; }   // primero el agua termina de extenderse
+      if (w >= N) { drips = [];
+        while (n < chunks && performance.now() - t0 < 6) {
+          T += cdt; n++;
+          if (age(cdt)) { dryFor = 0; if (T - firstWet > BUG_T) bugWet += cdt; if (T - firstWet > SNAIL_T) snWet += cdt; }
+          else dryFor += cdt;
+          if (n % 24 === 0) for (let t = 0; t < live.length; t++) if (live[t]) dirty[t] = 1;   // de vez en cuando, que se vea amarillear
+        }
+      }
+      const painted = paintSome(Math.max(2, 10 - (performance.now() - t0)));
+      if (n < chunks || !painted) { requestAnimationFrame(slice); return; }
+      settle(bugWet, snWet, dryFor);
+      paintDirty(true);
+      run();
+      if ((bugs.length || snails.length) && !bugRaf) bugRaf = requestAnimationFrame(bugFrame);
+    };
+    requestAnimationFrame(slice);
+  }
+  // los bichos no se recorren paso a paso: aparecen donde estarían
+  function settle(bugWet, snWet, dryFor) {
+    if (calm) return;
+    if (bugs.length || bugWet > 0) {             // las cochinillas que tocaba que llegaran están ya en los cercos
+      const cap = Math.min(MAXB, 8 + (moist() / 14 | 0)), want = Math.min(cap, bugs.length + (bugWet / 1.6 | 0));
+      bugs.forEach(b => { if (b.st !== 2) { const t = rimSpot(b); if (t) { b.x = b.tx = t.x; b.y = b.ty = t.y; } b.st = 1; b.wd = undefined; } });
+      bugs = bugs.filter(b => b.st === 1);
+      for (let k = bugs.length; k < want; k++) { const b = newBug(true); if (b) bugs.push(b); else break; }
+    }
+    if (dryFor > 90) bugs = [];                  // la pared lleva un rato seca: ya se fueron
+    if (snWet > 0) {                             // los caracoles que tocaba que llegaran, ya en su mancha
+      const cap = Math.min(10, 2 + (moist() / 60 | 0)), want = Math.min(cap, snails.length + (snWet / 20 | 0));
+      for (let k = snails.length; k < want; k++) { const sn = newSnail(); if (!sn) break; sn.x = sn.tx; sn.y = sn.ty; snails.push(sn); }
+    }
+    if (dryFor > 3) snails.forEach(sn => { if (sn.st !== "cae") { sn.st = "dentro"; sn.h = 1; sn.v = 0; sn.t = 0; } });   // pared seca: escondidos
+    drawBugs();
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { hidAt = Date.now(); return; }
+    if (hidAt) { const a = (Date.now() - hidAt) / 1000; hidAt = 0; catchUp(a); }
+  });
   window.__humedadReset = () => {              // al cambiar de página: se guarda la pared que dejamos y se recupera la que encontramos
     if (raf) cancelAnimationFrame(raf); raf = 0; if (slow) { clearInterval(slow); slow = 0; }
-    if (bugRaf) cancelAnimationFrame(bugRaf); bugRaf = 0; bugLast = 0;
+    if (bugRaf) cancelAnimationFrame(bugRaf); bugRaf = 0; bugLast = 0; cu++;
     save();
     key = location.hash || "#";
     m = null; GW = GH = 0; x0 = y0 = 1e9; x1 = y1 = -1; drips = []; bugs = []; scared = []; snails = []; sgrid = new Map(); snailAcc = 0; firstWet = -1; T = 0; dryClock = 0; spawnAcc = 0;
