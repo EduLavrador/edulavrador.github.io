@@ -182,6 +182,10 @@ footer { border-top: 1px solid var(--rule); padding: 18px 0 30px; font-family: v
   .contact li { grid-template-columns: 1fr; gap: 4px; padding: 14px 0; }
 }
 @media (prefers-reduced-motion: reduce) { .car-track { scroll-behavior: auto; } }
+/* Las letras quedan por encima de la pared, con un filo del color del papel: el moho no las tapa */
+main p, main li, main h1, main h2, main h3, main blockquote, main figcaption, main .ficha, nav a, footer, .lang { position: relative; z-index: 41; }
+.entry .meta { z-index: 41; }
+main p, main li, main h1, main h2, main h3, main blockquote, main figcaption, main .ficha, main .meta, nav a, footer { text-shadow: 0 0 1px var(--paper), 0 0 3px var(--paper), 0 0 6px var(--paper); }
 </style>
 </head>
 <body>
@@ -949,7 +953,7 @@ addEventListener("hashchange", route);
   // dónde hay texto: las cochinillas casi nunca se posan ahí (el moho crece igual en todas partes)
   function mapText() {
     if (!GW) return;
-    txt = new Uint8Array(GW * GH);
+    txt = new Uint8Array(GW * GH); tsoft = new Float32Array(GW * GH);
     document.querySelectorAll("main p, main li, main h1, main h2, main h3, main blockquote, main figcaption, main .ficha, main .meta, main .escrito, main .big, nav a, .lang, footer").forEach(el => {
       for (const rc of el.getClientRects()) {
         const X0 = Math.max(0, Math.floor((rc.left + scrollX) / C)), X1 = Math.min(GW - 1, Math.ceil((rc.right + scrollX) / C));
@@ -957,9 +961,14 @@ addEventListener("hashchange", route);
         for (let y = Y0; y <= Y1; y++) txt.fill(1, y * GW + X0, y * GW + X1 + 1);
       }
     });
+    // la misma zona, difuminada (unos 18 px de transición) para que el moho clarée un poco junto al texto sin dibujar su contorno
+    const R = 6, tmp = new Float32Array(GW * GH);
+    for (let y = 0; y < GH; y++) { let acc = 0; for (let x = -R; x < GW; x++) { if (x + R < GW) acc += txt[y * GW + x + R]; if (x - R - 1 >= 0) acc -= txt[y * GW + x - R - 1]; if (x >= 0) tmp[y * GW + x] = acc / (2 * R + 1); } }
+    for (let x = 0; x < GW; x++) { let acc = 0; for (let y = -R; y < GH; y++) { if (y + R < GH) acc += tmp[(y + R) * GW + x]; if (y - R - 1 >= 0) acc -= tmp[(y - R - 1) * GW + x]; if (y >= 0) tsoft[y * GW + x] = Math.min(1, 1.6 * acc / (2 * R + 1)); } }
   }
   /* La pared se calcula por parcelas de 16×16 celdas: solo las que tienen agua (o una mancha que todavía envejece).
      Así dos manchas lejanas no obligan a revisar toda la página seca que hay entre ellas. */
+  let tsoft = new Float32Array(0);
   const TS = 16; let TW = 0, TH = 0, live = new Uint8Array(0), dirty = new Uint8Array(0);
   function tiles() { TW = Math.ceil(GW / TS); TH = Math.ceil(GH / TS); live = new Uint8Array(TW * TH); dirty = new Uint8Array(TW * TH);
     for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { const i = y * GW + x; if (m[i] >= 0.01 || (ds[i] > 0 && yl[i] < 1)) live[(y / TS | 0) * TW + (x / TS | 0)] = 1; } }
@@ -1146,7 +1155,7 @@ addEventListener("hashchange", route);
       const h1 = hash(i, 1); if (h1 > gm * (0.16 + 0.7 * spk[i])) continue;      // racimos: donde hay motas (spk) y más moho
       const old = Math.min(1, Math.max(0, (wt[i] - MOLD_T - 45) / 90)), dorm = m[i] < 0.08;
       const r = C * (0.18 + 0.95 * hash(i, 2) ** 6) * (0.55 + 0.6 * gm);                    // casi todas pequeñas, alguna gorda
-      const a = Math.min(0.56, (0.24 + 0.36 * old) * Math.min(1, gm * 1.6)) * (dorm ? 0.65 : 1) * (1 - 0.6 * yl[i]) * (txt[i] === 1 ? 0.8 : 1);   // sobre las letras un poco más leve, sin borde que se note
+      const a = Math.min(0.56, (0.24 + 0.36 * old) * Math.min(1, gm * 1.6)) * (dorm ? 0.65 : 1) * (1 - 0.6 * yl[i]) * (1 - 0.4 * (tsoft[i] || 0));   // junto al texto, algo más leve y sin borde que se note
       const px = (x + hash(i, 3)) * C, py = (y + hash(i, 4)) * C;
       const n = 2 + (hash(i, 5) * 3 | 0);                                                      // cada mota, unos grumos que se solapan: forma irregular
       for (let q = 0; q < n; q++) {
@@ -1221,7 +1230,7 @@ addEventListener("hashchange", route);
   /* ---------- Cochinillas: a los 5 minutos de la primera humedad llegan y se colocan en los cercos ---------- */
   const bc = document.createElement("canvas"); bc.setAttribute("aria-hidden", "true");
   const bw = document.createElement("div");   // pegada a la página: al hacer scroll las cochinillas se quedan en la pared
-  bw.style.cssText = "position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:41;";
+  bw.style.cssText = "position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:42;";
   bc.style.cssText = "position:absolute;left:0;top:0;";
   bw.appendChild(bc); document.body.appendChild(bw);
   const bx = bc.getContext("2d"), BS = innerWidth < 760 ? 0.85 : 1, BUG_T = 180, MAXB = 100;   // a los 3 minutos
