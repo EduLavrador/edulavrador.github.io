@@ -1010,6 +1010,7 @@ addEventListener("hashchange", route);
   function askMotion() {                                                       // iPhone: pide permiso al primer toque
     if (asked) return; asked = true;
     if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === "function") DeviceMotionEvent.requestPermission().catch(() => {});
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().catch(() => {});
   }
   function step() {
     NB = [-1, 1, -GW, GW, -GW - 1, -GW + 1, GW - 1, GW + 1];
@@ -1189,6 +1190,7 @@ addEventListener("hashchange", route);
     if (e.target.closest(inert)) return;
     if (String(getSelection ? getSelection() : "").length) return;
     askMotion();
+    if (snails.length) pokeSnail(e.pageX, e.pageY);
     if (bugs.length) poke(e.pageX, e.pageY);
     wet(e.pageX, e.pageY);                      // se queda en la página que dejamos
     const a = e.target.closest("a[href^='#'], .car figure.go");
@@ -1237,6 +1239,7 @@ addEventListener("hashchange", route);
     const sx = o[0], sy = o[1];
     return { x: sx, y: sy, tx: t.x, ty: t.y, h: Math.atan2(t.y - sy, t.x - sx), st: 0, sz, an: 0, fl: 0 };
   }
+  let lastBusy = false;
   function bugTick(dt, busy) {
     if (calm || firstWet < 0 || !m) return;
     if (T - firstWet > BUG_T && busy) {
@@ -1247,7 +1250,8 @@ addEventListener("hashchange", route);
     }
     if (!busy) bugs.forEach(b => { if (b.st === 1 && b.wd === undefined && Math.random() < dt * 0.08) farewell(b); });   // pared seca: deambulan un rato y se van
     else bugs.forEach(b => { if (b.wd !== undefined && b.st !== 2) b.wd = undefined; });   // vuelve el agua: se quedan
-    if (bugs.length && !bugRaf) { if (moveBugs(dt)) bugRaf = requestAnimationFrame(bugFrame); drawBugs(); }
+    snailTick(dt, busy); lastBusy = busy;
+    if ((bugs.length || snails.length) && !bugRaf) { if (moveBugs(dt) | moveSnails(dt, busy)) bugRaf = requestAnimationFrame(bugFrame); drawBugs(); }
   }
   // antes de irse buscan algo que todavía recuerde al agua: suelen ir a una imagen cercana, se paran y siguen
   function farewell(b) { b.wd = 20 + Math.random() * 40; const t = byeSpot(b); b.tx = t.x; b.ty = t.y; b.st = 0; }
@@ -1322,6 +1326,7 @@ addEventListener("hashchange", route);
     bOy = Math.max(0, Math.min(scrollY - innerHeight / 2, docH - bH)); bc.style.top = bOy + "px"; bw.style.height = docH + "px";
     bx.clearRect(0, 0, innerWidth, bH);
     const ox = 0, oy = bOy;
+    if (snails.length) drawSnails(oy);
     bugs.forEach(b => {
       const x = b.x - ox, y = b.y - oy; if (x < -20 || y < -20 || x > innerWidth + 20 || y > bH + 20) return;
       const s = BS * b.sz;
@@ -1342,13 +1347,165 @@ addEventListener("hashchange", route);
       bx.restore();
     });
   }
+
+  /* Caracoles: las limneas de Edu (su foto, vista desde arriba). Llegan tarde a la pared húmeda, la buscan
+     serpenteando, a veces en bucle, y siguen los rastros que encuentran. Sobre la humedad pastan el moho, que se
+     aclara poco a poco, y pasan mucho rato quietos o escondidos. Su baba es humedad de verdad: se seca como la
+     de la pared y, ya seca, solo se delata con un brillo tornasolado cuando cambia la luz (inclinando el móvil o
+     moviendo el ratón). Si la pared se seca no se van: se quedan dentro de la concha. Al tocarlos se esconden;
+     si ya estaban escondidos, se sueltan y caen hacia donde está el suelo. */
+  const sspr = new Image(); sspr.src = "img/limnea.webp"; sspr.onload = () => drawBugs();
+  const SNAIL_T = 300, SV = 6 * BS, SG = 8;   // llegan a los 5 min; velocidad (px/s); rejilla para encontrar rastros
+  let snails = [], sgrid = new Map(), snailAcc = 0, LX = 0.3, LY = -0.4, lightAt = 0;
+  function txtAt(x, y) { const i = cell(x, y); return i >= 0 && txt[i] === 1; }
+  function gkey(x, y) { return (x / SG | 0) + "," + (y / SG | 0); }
+  function regTrail(sn) { for (const q of sn.trail) { const k = gkey(q.x, q.y); (sgrid.get(k) || sgrid.set(k, []).get(k)).push(q); } }
+  function wetSpot() {                         // un sitio húmedo (o con moho) fuera del texto
+    for (let n = 0; n < 90; n++) {             // prefieren el moho (hacia dentro de la mancha); las cochinillas, los bordes
+      const x = x0 + Math.random() * Math.max(1, x1 - x0), y = y0 + Math.random() * Math.max(1, y1 - y0), i = (y | 0) * GW + (x | 0);
+      if (i >= 0 && i < m.length && (txt[i] !== 1 || Math.random() < 0.3) && (g[i] > 0.2 || (n > 60 && m[i] > 0.12))) return { x: x * C, y: y * C };
+    }
+    return null;
+  }
+  function newSnail() {
+    const t = wetSpot(); if (!t) return null;
+    // aparecen fuera de la pantalla y entran: por el lado o por arriba/abajo de lo que se ve, lo más cerca de su mancha
+    const vt = scrollY, vb = scrollY + innerHeight, Wd = GW * C, o = 16, j = (Math.random() - 0.5) * 80;
+    const doors = [{ x: -o, y: t.y + j, d: t.x }, { x: Wd + o, y: t.y + j, d: Wd - t.x }];
+    if (vt > 40) doors.push({ x: t.x + j, y: vt - o, d: t.y - vt });
+    if (vb < GH * C - 40) doors.push({ x: t.x + j, y: vb + o, d: vb - t.y });
+    doors.sort((p, q) => p.d - q.d); const { x, y } = doors[0];
+    return { id: Math.random(), x, y, a: Math.atan2(t.y - y, t.x - x), tx: t.x, ty: t.y, v: 0, vt: SV, k: 0, loop: 0, lk: 0, h: 0,
+      st: "anda", t: 15 + Math.random() * 20, follow: 0, side: 0, sp: 0, vx: 0, vy: 0, trail: [] };
+  }
+  function nearTrail(sn) {
+    const cx = sn.x / SG | 0, cy = sn.y / SG | 0; let best = null, bd = 9;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const L = sgrid.get((cx + dx) + "," + (cy + dy)); if (!L) continue;
+      for (const q of L) { if (q.o === sn.id && T - q.t < 20) continue; const d = Math.hypot(q.x - sn.x, q.y - sn.y); if (d < bd) { bd = d; best = q; } }
+    }
+    return best;
+  }
+  function turnTo(sn, ang, k) { const d = Math.atan2(Math.sin(ang - sn.a), Math.cos(ang - sn.a)); sn.a += d * k; }
+  function moveSnails(dt, busy) {
+    let moving = false;
+    for (let n = snails.length - 1; n >= 0; n--) {
+      const sn = snails[n];
+      if (sn.st === "cae") {                   // se ha soltado: cae hacia el suelo (según cómo esté el móvil) dando vueltas
+        moving = true; sn.vx += GX * 900 * dt; sn.vy += GY * 900 * dt; sn.x += sn.vx * dt; sn.y += sn.vy * dt; sn.a += sn.sp * dt;
+        if (sn.y > GH * C + 30 || sn.y < -30 || sn.x < -30 || sn.x > GW * C + 30) snails.splice(n, 1);
+        continue;
+      }
+      if (!busy && (sn.st === "anda" || sn.st === "sale")) { sn.st = "esconde"; sn.t = 1.6; }   // pared seca: se meten en la concha y esperan
+      sn.t -= dt;
+      if (sn.st === "anda") {
+        moving = true;
+        const i = cell(sn.x, sn.y), onWet = i >= 0 && (m[i] > 0.06 || g[i] > 0.15);
+        sn.v += ((onWet ? 0.4 : 1) * sn.vt - sn.v) * Math.min(1, dt * 1.5);
+        if (sn.loop > 0) { sn.loop -= dt; sn.a += sn.lk * dt; }
+        else {
+          sn.k += -sn.k * 0.5 * dt + (Math.random() - 0.5) * 0.9 * Math.sqrt(dt); sn.k = Math.max(-0.5, Math.min(0.5, sn.k)); sn.a += sn.k * dt;
+          if (Math.random() < dt * (onWet ? 0.01 : 0.025)) { sn.lk = (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.4); sn.loop = 6.28 / Math.abs(sn.lk) * (0.8 + Math.random() * 0.5); }
+          const q = nearTrail(sn);
+          if (q && (sn.follow > 0 || Math.random() < dt * 1.5)) {
+            if (sn.follow <= 0) sn.follow = 4 + Math.random() * 8;
+            let qa = q.a; if (Math.abs(Math.atan2(Math.sin(qa - sn.a), Math.cos(qa - sn.a))) > Math.PI / 2) qa += Math.PI;
+            turnTo(sn, qa, Math.min(1, dt * 1.5));
+          }
+          sn.follow -= dt;
+          if (!onWet) {                         // buscan la humedad
+            if (Math.random() < dt * 0.05 || !sn.tx) { const t = wetSpot(); if (t) { sn.tx = t.x; sn.ty = t.y; } }
+            if (sn.tx) turnTo(sn, Math.atan2(sn.ty - sn.y, sn.tx - sn.x), dt * 0.35);
+          }
+        }
+        const mg = 14;
+        if (sn.x < mg || sn.x > GW * C - mg || sn.y < mg || sn.y > GH * C - mg) turnTo(sn, Math.atan2(GH * C / 2 - sn.y, GW * C / 2 - sn.x), dt * 1.2);
+        const nx = sn.x + Math.cos(sn.a) * sn.v * dt, ny = sn.y + Math.sin(sn.a) * sn.v * dt;
+        sn.x = nx; sn.y = ny;                   // pasan por encima del texto sin problema
+        if (onWet && i >= 0) {                  // pastan: el moho de alrededor se aclara poco a poco
+          const cx = i % GW, cy = i / GW | 0;
+          for (let yy = -2; yy <= 2; yy++) for (let xx = -2; xx <= 2; xx++) { const j = (cy + yy) * GW + cx + xx; if (j >= 0 && j < g.length && g[j] > 0) { g[j] = Math.max(0, g[j] - dt * 0.03); act(cx + xx, cy + yy); } }
+        }
+        if (sn.t <= 0) { if (txtAt(sn.x, sn.y) && Math.random() < 0.6) sn.t = 3; else { sn.st = "esconde"; sn.t = 1.6; } }   // prefieren pararse fuera del texto, pero a veces se quedan encima
+      } else if (sn.st === "esconde") {
+        moving = true; sn.v = 0; sn.h = Math.min(1, sn.h + dt / 1.6);
+        if (sn.t <= 0) { const i = cell(sn.x, sn.y), onWet = i >= 0 && (m[i] > 0.06 || g[i] > 0.15); sn.st = "dentro"; sn.t = onWet ? 6 + Math.random() * 20 : 3 + Math.random() * 7; }
+      } else if (sn.st === "dentro") {
+        if (sn.t <= 0 && busy) { sn.st = "sale"; sn.t = 1.6; }
+      } else if (sn.st === "sale") {
+        moving = true; sn.h = Math.max(0, sn.h - dt / 1.6);
+        if (sn.t <= 0) { const i = cell(sn.x, sn.y), onWet = i >= 0 && (m[i] > 0.06 || g[i] > 0.15); sn.st = "anda"; sn.t = onWet ? 4 + Math.random() * 8 : 12 + Math.random() * 25; sn.k = (Math.random() - 0.5) * 0.6; }
+      }
+      // la baba: un hilo de humedad de verdad en la pared, y su huella para el brillo
+      const L = sn.trail[sn.trail.length - 1];
+      if (sn.st === "anda" && (!L || Math.hypot(L.x - sn.x, L.y - sn.y) > 1.5)) {
+        const q = { x: sn.x, y: sn.y, a: L ? Math.atan2(sn.y - L.y, sn.x - L.x) : sn.a, t: T, o: sn.id };
+        sn.trail.push(q); const k = gkey(q.x, q.y); (sgrid.get(k) || sgrid.set(k, []).get(k)).push(q);
+        if (sn.trail.length > 1500) sn.trail.shift();
+        const i = cell(sn.x, sn.y); if (i >= 0) { if (m[i] < 0.066) m[i] = 0.066; lw[i] = T; act(i % GW, i / GW | 0); grow(i % GW, i / GW | 0); }
+      }
+    }
+    return moving;
+  }
+  function snailTick(dt, busy) {
+    if (calm || firstWet < 0 || !m) return;
+    if (T - firstWet > SNAIL_T && busy) {
+      const cap = Math.min(10, 2 + (moist() / 60 | 0));
+      snailAcc += dt;
+      if (snailAcc > 20 && snails.filter(s => s.st !== "cae").length < cap) { snailAcc = 0; const s = newSnail(); if (s) snails.push(s); }
+    }
+  }
+  function pokeSnail(px, py) {
+    let hit = false;
+    snails.forEach(sn => {
+      if (sn.st === "cae" || Math.hypot(sn.x - px, sn.y - py) > 18 * BS) return;
+      hit = true;
+      if (sn.h > 0.6) { sn.st = "cae"; sn.vx = (Math.random() - 0.5) * 40; sn.vy = -20; sn.sp = (Math.random() - 0.5) * 9; }   // ya escondido: se suelta
+      else { sn.st = "esconde"; sn.t = 1.6 * (1 - sn.h); }
+    });
+    if (hit && !bugRaf) bugRaf = requestAnimationFrame(bugFrame);
+    return hit;
+  }
+  function drawSnails(oy) {
+    // el brillo de la baba seca: solo los tramos secos que miran hacia la luz, un poco tornasolados
+    const mag = Math.min(1, Math.hypot(LX, LY)), lx = LX / (mag || 1), ly = LY / (mag || 1);
+    bx.save(); bx.lineCap = "round";
+    for (const sn of snails) {
+      const tr = sn.trail, n = tr.length; if (n < 2) continue;
+      const band = 0.5 + 0.55 * LX, spread = 0.09 + 0.06 * (1 - mag);
+      for (let k = 1; k < n; k++) {
+        const p = tr[k - 1], q = tr[k], y = q.y - oy; if (y < -10 || y > bH + 10) continue;
+        const i = cell(q.x, q.y); if (i < 0 || m[i] > 0.01 || T - q.t < 40) continue;   // húmeda todavía: no brilla
+        let dx = q.x - p.x, dy = q.y - p.y; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+        const face = Math.abs(-dy * lx + dx * ly), s = k / n, along = Math.exp(-(((s - band) / spread) ** 2));
+        const I = along * face ** 3 * mag * (0.75 + 0.25 * Math.sin(k * 1.7) * Math.sin(k * 0.37));
+        if (I < 0.03) continue;
+        bx.strokeStyle = `hsla(${200 + 140 * (s - band) / spread + 40 * LY | 0}, 40%, 72%, ${Math.min(0.45, I * 0.45)})`;
+        bx.lineWidth = 2.6 * BS; bx.beginPath(); bx.moveTo(p.x, p.y - oy); bx.lineTo(q.x, y); bx.stroke();
+      }
+    }
+    bx.restore();
+    for (const sn of snails) {                 // los caracoles: la cabeza entra y sale de la concha
+      const x = sn.x, y = sn.y - oy; if (x < -20 || y < -20 || x > innerWidth + 20 || y > bH + 20 || !sspr.naturalWidth) continue;
+      const w = 14 * BS, hw = w * sspr.naturalHeight / sspr.naturalWidth, top = -hw * 0.35;   // algo más grandes que las cochinillas, como en la realidad
+      bx.save(); bx.translate(x, y); bx.rotate(sn.a + Math.PI / 2);
+      bx.shadowColor = "rgba(40,35,20,0.18)"; bx.shadowBlur = 3; bx.shadowOffsetY = 1;
+      if (sn.h < 1) { bx.save(); bx.beginPath(); bx.rect(-w, top - 4, w * 2, hw * 0.34 + 4); bx.clip(); bx.drawImage(sspr, -w / 2, top + sn.h * hw * 0.3, w, hw); bx.restore(); }
+      bx.save(); bx.beginPath(); bx.ellipse(-w * 0.01, top + hw * 0.64, w * 0.49, hw * 0.38, 0, 0, 6.28); bx.clip(); bx.drawImage(sspr, -w / 2, top, w, hw); bx.restore();
+      bx.restore();
+    }
+  }
+  // la luz para el brillo: en el móvil, la inclinación; en el ordenador, el ratón
+  function relight() { if (snails.length && !bugRaf && performance.now() - lightAt > 40) { lightAt = performance.now(); drawBugs(); } }
+  addEventListener("deviceorientation", e => { if (e.gamma == null) return; LX = Math.max(-1, Math.min(1, e.gamma / 35)); LY = Math.max(-1, Math.min(1, (e.beta - 40) / 35)); relight(); });
+  addEventListener("mousemove", e => { LX = (e.clientX / innerWidth - 0.5) * 2; LY = (e.clientY / innerHeight - 0.5) * 2; relight(); }, { passive: true });
   function bugFrame(t) {
     const dt = Math.min(0.1, (t - (bugLast || t)) / 1000); bugLast = t;
-    const moving = moveBugs(dt); drawBugs();
-    bugRaf = bugs.length && moving ? requestAnimationFrame(bugFrame) : 0;
+    const moving = moveBugs(dt) | moveSnails(dt, raf || slow ? lastBusy : false); drawBugs();
+    bugRaf = (bugs.length || snails.length) && moving ? requestAnimationFrame(bugFrame) : 0;
     if (!bugRaf) bugLast = 0;
   }
-  addEventListener("scroll", () => { if (bugs.length && !bugRaf) drawBugs(); }, { passive: true });
+  addEventListener("scroll", () => { if ((bugs.length || snails.length) && !bugRaf) drawBugs(); }, { passive: true });
   addEventListener("resize", sizeBugs);
   sizeBugs();
 
@@ -1357,10 +1514,11 @@ addEventListener("hashchange", route);
   let key = null;
   function save() {
     if (!key || !m || firstWet < 0) return;
-    pages[key] = { GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, box: [x0, y0, x1, y1], T, drips, dryClock, firstWet, bugs, scared, at: performance.now() };
+    pages[key] = { GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, box: [x0, y0, x1, y1], T, drips, dryClock, firstWet, bugs, scared, snails, at: performance.now() };
   }
   function restore(p) {
     ({ GW, GH, m, wt, g, sa, fl, lw, yl, ds, mh, por, spk, mot, vet, T, drips, dryClock, firstWet, bugs, scared } = p);
+    snails = (p.snails || []).filter(s => s.st !== "cae"); sgrid = new Map(); snails.forEach(regTrail);
     [x0, y0, x1, y1] = p.box;
     cv.width = GW; cv.height = GH; cv.style.width = GW * C + "px"; cv.style.height = GH * C + "px"; sizeMold();
     img = ctx.createImageData(GW, GH);
@@ -1382,14 +1540,14 @@ addEventListener("hashchange", route);
     alloc();                                   // por si la página ha cambiado de tamaño
     paint(0, 0, GW - 1, GH - 1);
     startSlow();
-    if (bugs.length && !bugRaf) bugRaf = requestAnimationFrame(bugFrame);
+    if ((bugs.length || snails.length) && !bugRaf) bugRaf = requestAnimationFrame(bugFrame);
   }
   window.__humedadReset = () => {              // al cambiar de página: se guarda la pared que dejamos y se recupera la que encontramos
     if (raf) cancelAnimationFrame(raf); raf = 0; if (slow) { clearInterval(slow); slow = 0; }
     if (bugRaf) cancelAnimationFrame(bugRaf); bugRaf = 0; bugLast = 0;
     save();
     key = location.hash || "#";
-    m = null; GW = GH = 0; x0 = y0 = 1e9; x1 = y1 = -1; drips = []; bugs = []; scared = []; firstWet = -1; T = 0; dryClock = 0; spawnAcc = 0;
+    m = null; GW = GH = 0; x0 = y0 = 1e9; x1 = y1 = -1; drips = []; bugs = []; scared = []; snails = []; sgrid = new Map(); snailAcc = 0; firstWet = -1; T = 0; dryClock = 0; spawnAcc = 0;
     ctx.clearRect(0, 0, cv.width, cv.height); mx.clearRect(0, 0, mc.width, mc.height); bx.clearRect(0, 0, innerWidth, bH);
     if (pages[key]) restore(pages[key]); else alloc();
     if (carry) { const c = carry; carry = null; wet(c.x + scrollX, c.y + scrollY); }   // y también moja la que encontramos
