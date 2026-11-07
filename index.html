@@ -1420,8 +1420,20 @@ addEventListener("hashchange", route);
         }
         const mg = 14;
         if (sn.x < mg || sn.x > GW * C - mg || sn.y < mg || sn.y > GH * C - mg) turnTo(sn, Math.atan2(GH * C / 2 - sn.y, GW * C / 2 - sn.x), dt * 1.2);
+        // no se montan unos encima de otros: si tienen otra concha delante, frenan y la rodean
+        const R = 16 * BS;
+        for (const o of snails) {
+          if (o === sn || o.st === "cae") continue;
+          const dx = o.x - sn.x, dy = o.y - sn.y, d = Math.hypot(dx, dy);
+          if (d < R * 1.6 && dx * Math.cos(sn.a) + dy * Math.sin(sn.a) > 0) {
+            const side = -dx * Math.sin(sn.a) + dy * Math.cos(sn.a) > 0 ? -1 : 1;
+            sn.a += side * 1.6 * dt * (1 - d / (R * 1.6)); sn.v *= 1 - Math.min(0.6, dt * 3 * (1 - d / (R * 1.6)));
+          }
+        }
         const nx = sn.x + Math.cos(sn.a) * sn.v * dt, ny = sn.y + Math.sin(sn.a) * sn.v * dt;
-        sn.x = nx; sn.y = ny;                   // pasan por encima del texto sin problema
+        let blocked = false;
+        for (const o of snails) { if (o !== sn && o.st !== "cae" && Math.hypot(o.x - nx, o.y - ny) < R && Math.hypot(o.x - nx, o.y - ny) < Math.hypot(o.x - sn.x, o.y - sn.y)) { blocked = true; break; } }
+        if (!blocked) { sn.x = nx; sn.y = ny; } // pasan por encima del texto sin problema, pero no por encima de otra concha
         // si el caracol viene hacia donde hay cochinillas, se apartan sin prisa a un lado (ellas sí pueden pasarle por encima)
         const fx = sn.x + Math.cos(sn.a) * 8 * BS, fy = sn.y + Math.sin(sn.a) * 8 * BS;
         for (const b of bugs) {
