@@ -41,7 +41,7 @@ html, body { margin: 0; background: var(--paper); color: var(--ink); overflow-x:
 body { font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
 a { color: var(--mud); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover { text-decoration-style: wavy; text-decoration-thickness: 1px; text-underline-offset: 4px; }
-.contact a:hover, .infl a:hover { text-decoration-style: wavy; }
+.infl a:hover { text-decoration-style: wavy; }
 #humedad { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; filter: blur(0.7px); }
 #moho { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 40; mix-blend-mode: multiply; filter: blur(0.6px); }
 /* Cita al entrar: una ficha bibliográfica pequeña, una vez por visita */
@@ -57,7 +57,7 @@ a:hover { text-decoration-style: wavy; text-decoration-thickness: 1px; text-unde
 .cita-card nav button:focus-visible, .cita-card nav a:focus-visible { outline: 1px solid var(--mud); outline-offset: 3px; }
 @keyframes citaIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .cita { animation: none; } }
-.prose a, .escrito a, .infl a, .big a, .contact a, .box a, .ficha a { text-decoration: underline; }
+.prose a, .escrito a, .infl a, .big a, .box a, .ficha a { text-decoration: underline; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--mud); outline-offset: 3px; }
 img { max-width: 100%; display: block; }
 [hidden] { display: none !important; }
@@ -86,7 +86,6 @@ img { max-width: 100%; display: block; }
 .car-ui .count { font-variant-numeric: tabular-nums; }
 
 /* Portada */
-.intro { font-size: 15px; max-width: 52ch; margin: 34px 0 0; }
 .feed { display: grid; gap: 72px; margin: 64px 0 80px; }
 .entry { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 24px; align-items: start; }
 .entry .meta { display: grid; gap: 0; font-size: 14px; position: sticky; top: 18px; }
@@ -105,17 +104,6 @@ img { max-width: 100%; display: block; }
 .entry .shot img { width: 100%; height: auto; max-height: 78vh; object-fit: cover; transition: opacity 0.25s; }
 .entry .shot:hover img { opacity: 0.88; }
 
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 20px; margin: 64px 0 80px; }
-.grid .group { grid-column: 1 / -1; margin: 16px 0 -16px; }
-.grid .group:first-child { margin-top: 0; }
-.card { display: grid; gap: 10px; align-content: start; font-size: 14px; }
-.card .shot { display: block; position: relative; overflow: hidden; aspect-ratio: 4 / 3; background: var(--mud-soft); }
-.card .shot img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.25s; }
-.card .shot:hover img { opacity: 0.88; }
-.card .t { font-size: 15px; }
-.card .meta { display: grid; color: var(--mud); line-height: 1.45; }
-.card .yr { font-size: 12px; margin-top: 4px; }
-@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 
 /* Proyecto */
 .phead { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 24px; margin-bottom: 36px; }
@@ -152,8 +140,7 @@ img { max-width: 100%; display: block; }
 .yt { display: grid; gap: 6px; }
 .yt-frame { position: relative; aspect-ratio: 16 / 9; background: var(--ink); overflow: hidden; }
 .yt-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.yt-play { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; cursor: pointer; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: inherit; }
-.yt-play { overflow: hidden; }
+.yt-play { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; cursor: pointer; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: inherit; overflow: hidden; }
 .yt-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-width: none; transition: transform 0.4s, filter 0.4s; filter: brightness(0.82); }
 .yt-play:hover .yt-thumb { transform: scale(1.02); filter: brightness(0.7); }
 .yt-play span { position: relative; display: grid; place-items: center; gap: 12px; font-size: 14px; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
@@ -178,7 +165,6 @@ footer .lic { flex-basis: 100%; line-height: 1.6; }
 footer { border-top: 1px solid var(--rule); padding: 18px 0 30px; font-family: var(--mono); font-size: 12px; color: var(--mud); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
 @media (max-width: 760px) {
-  .grid { grid-template-columns: 1fr; gap: 32px; margin-top: 44px; }
   .entry, .phead, .pbody, .page { grid-template-columns: 1fr; gap: 12px; }
   .entry .meta { position: static; }
   .entry.m .shot, .entry.s .shot { width: 100%; }
@@ -214,8 +200,8 @@ footer { border-top: 1px solid var(--rule); padding: 18px 0 30px; font-family: v
 <script>
 /* =============== CONTENIDO =============== */
 const UI = {
-  es: { projects: "Proyectos", bio: "Bio", cv: "CV", texts: "Textos", contact: "Contacto", prev: "Anterior", next: "Siguiente", nextProject: "Siguiente proyecto", catalog: "Catálogo", text: "Texto", writings: "Escritos", origNote: "", works: "Trabajos", influenced: "Influenciado por los textos de", lines: "Líneas abiertas y mediación", fieldbook: "Cuaderno de campo", catalogSoon: "En preparación.", videos: "Vídeos", play: "Reproducir", back: "Todos los proyectos", place: "Málaga", lic: 'Salvo que se indique otro autor, los textos, las imágenes y la intervención de humedad, cochinillas y caracoles de esta web son obra de Edu Lavrador, realizada con asistencia de IA, y se publican con licencia <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.es" target="_blank">CC BY-NC-ND 4.0</a>: puedes compartirlos citando al autor, sin uso comercial y sin modificarlos.' },
-  en: { projects: "Projects", bio: "Bio", cv: "CV", texts: "Texts", contact: "Contact", prev: "Previous", next: "Next", nextProject: "Next project", catalog: "Catalogue", text: "Text", writings: "Writings", origNote: "Translated from the Spanish original.", works: "Works", influenced: "Influenced by the writings of", lines: "Ongoing lines and mediation", fieldbook: "Field notebook", catalogSoon: "In preparation.", videos: "Videos", play: "Play", back: "All projects", place: "Málaga", lic: 'Unless another author is credited, the texts, images and the damp, woodlouse and snail intervention on this site are the work of Edu Lavrador, made with AI assistance, and are published under a <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a> licence: you may share them with credit to the author, for non-commercial purposes and without modification.' }
+  es: { projects: "Proyectos", bio: "Bio", cv: "CV", texts: "Textos", contact: "Contacto", prev: "Anterior", next: "Siguiente", nextProject: "Siguiente proyecto", catalog: "Catálogo", text: "Texto", writings: "Escritos", origNote: "", works: "Trabajos", influenced: "Influenciado por los textos de", lines: "Líneas abiertas y mediación", fieldbook: "Cuaderno de campo", catalogSoon: "En preparación.", videos: "Vídeos", play: "Reproducir", place: "Málaga", lic: 'Salvo que se indique otro autor, los textos, las imágenes y la intervención de humedad, cochinillas y caracoles de esta web son obra de Edu Lavrador, realizada con asistencia de IA, y se publican con licencia <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.es" target="_blank">CC BY-NC-ND 4.0</a>: puedes compartirlos citando al autor, sin uso comercial y sin modificarlos.' },
+  en: { projects: "Projects", bio: "Bio", cv: "CV", texts: "Texts", contact: "Contact", prev: "Previous", next: "Next", nextProject: "Next project", catalog: "Catalogue", text: "Text", writings: "Writings", origNote: "Translated from the Spanish original.", works: "Works", influenced: "Influenced by the writings of", lines: "Ongoing lines and mediation", fieldbook: "Field notebook", catalogSoon: "In preparation.", videos: "Videos", play: "Play", place: "Málaga", lic: 'Unless another author is credited, the texts, images and the damp, woodlouse and snail intervention on this site are the work of Edu Lavrador, made with AI assistance, and are published under a <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a> licence: you may share them with credit to the author, for non-commercial purposes and without modification.' }
 };
 
 const HERO = [
@@ -537,11 +523,6 @@ const PROJECTS = [
   st.videos = st.videos.slice(1);
 })();
 
-const INTRO = {
-  es: "Práctica procesual e instalación site-specific: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales (filtración, evaporación, riego, cristalización) y siguen activos durante la exposición.",
-  en: "Processual practice and site-specific installation: systems of water, plants and conduits that set real hydric processes in motion (filtration, evaporation, irrigation, crystallisation) and remain active during the exhibition."
-};
-
 const BIO = {
   es: ["Edu Lavrador (Sevilla, 1997), artista e investigador, centra su trabajo en la práctica procesual y la instalación site-specific: sistemas de agua, plantas y conducciones que ponen en marcha procesos hídricos reales (filtración, evaporación, riego, cristalización) y siguen activos durante la exposición. Sus dispositivos combinan agua, vidrio, plástico, barro, metal y tecnologías de baja complejidad.",
        "Buena parte de su investigación nace del trabajo de campo. Uno de sus casos de estudio es el cauce del Guadalmedina, en Málaga, donde una acequia rota ha formado un pequeño humedal en el que conviven caracoles, larvas acuáticas, colémbolos y aves como garzas y cigüeñuelas. Allí toma muestras de agua y suelo y registra estos organismos como indicadores de un ecosistema que la ciudad da por muerto.",
@@ -770,7 +751,14 @@ let lang = "es";
 try { const s = localStorage.getItem("lang"); if (s === "en" || s === "es") lang = s; } catch (e) {}
 const T = v => (v && typeof v === "object" && !Array.isArray(v)) ? v[lang] : v;
 const view = document.getElementById("view");
-const img = (k, alt, lazy = true) => `<img src="img/${k}.jpg" alt="${(alt || "").replace(/"/g, "&quot;").replace(/<[^>]+>/g, "")}"${lazy ? ' loading="lazy"' : ""} decoding="async">`;
+const YT = innerWidth < 760 ? "hqdefault" : "maxresdefault";   // miniatura de YouTube: en el móvil la pequeña basta
+// medidas de cada foto (para que la página no salte mientras cargan) y versiones ligeras en WebP: 800 px para el móvil, 1400 px para pantallas grandes
+const DIMS = {"agua-bifurcacion":[2000,1277],"agua-brotes":[2000,1333],"agua-campana":[1333,2000],"agua-caracol-arena":[2000,1548],"agua-caracol":[2000,1333],"agua-caracoles-tanque":[2000,1320],"agua-caracoles":[2000,1333],"agua-cilindro-plantas":[2000,1333],"agua-cilindro":[2000,1333],"agua-dispositivo":[2000,1424],"agua-gesto":[1333,2000],"agua-loop":[1280,720],"agua-modulo-luz":[2000,1225],"agua-modulo":[2000,1347],"agua-pared":[2000,1333],"agua-poto":[2000,1333],"agua-punta":[2000,1333],"agua-rincon":[2000,1396],"agua-sala":[2000,1203],"agua-sedimento":[2000,1256],"agua-tanque":[2000,1333],"agua-techo":[2000,1333],"agua-vaso":[1408,2000],"axarquia-bancal":[1300,677],"axarquia-huerto":[1300,871],"axarquia-tapa":[1300,807],"axarquia-vasija":[1300,822],"fricciones-cono-noche":[1343,2000],"fricciones-cono":[1343,2000],"fricciones-tripode":[2000,1343],"fricciones-vasija-azul":[2000,1343],"fricciones-vasija":[2000,1343],"fricciones-vista":[1343,2000],"guad-hierba":[1800,1012],"guad-humedal":[1800,1012],"guad-muestras":[1012,1800],"guad-muro":[1012,1800],"guad-pavimento":[1800,1012],"guad-vegetacion":[1800,1012],"humedad-caracol":[2000,1333],"humedad-conductos":[2000,1333],"humedad-ecosistema":[2000,1333],"humedad-hermeticos":[2000,1333],"humedad-interior":[2000,1333],"humedad-lona":[2000,1333],"humedad-modulo":[2000,1333],"humedad-planta":[2000,1360],"humedad-poto":[2000,1371],"humedad-refugio-2":[2000,1333],"humedad-refugio":[2000,1344],"humedad-sensor":[2000,1333],"humedad-vista":[2000,1227],"humus-mva":[952,1300],"humus-noche":[952,1300],"humus-vaso":[657,842],"humus-violeta":[570,831],"nacimiento-cenital":[1600,1200],"nacimiento-dispositivo":[1600,1200],"nacimiento-epilobio":[1200,1600],"nacimiento-frontal":[1600,1200],"nacimiento-lateral":[1600,1200],"nacimiento-rincon":[1600,1200],"og-humedad":[1200,630],"portada-goteo":[2000,1333],"rigor-ars":[495,667],"rigor-cuerpo":[576,582],"rigor-figura":[1300,977],"rigor-pies":[572,770],"rigor-pradera":[648,832],"rigor-proceso":[744,1024],"styrum-anillo":[1332,2000],"styrum-azul":[1457,2000],"styrum-colonia":[2000,1333],"styrum-filamentos":[757,2000],"styrum-m1":[1333,2000],"styrum-m10":[1333,2000],"styrum-m11":[1333,2000],"styrum-m12":[2000,1333],"styrum-m13":[2000,1333],"styrum-m29":[2000,1333],"styrum-m33":[2000,1333],"styrum-m7":[1333,2000],"styrum-m9":[1333,2000],"styrum-muestras":[2000,1333],"styrum-pieza":[2000,1333],"styrum-ramas":[2000,1333],"styrum-roca-2":[1500,2000],"styrum-roca":[1500,2000],"tejido-charla":[659,435],"tejido-jam":[622,328],"tejido-jornadas":[615,288],"tejido-mural":[565,376],"tejido-taller":[619,276]};
+const img = (k, alt, lazy = true, sizes = "(max-width: 760px) 100vw, 900px") => {
+  const d = DIMS[k], alt2 = (alt || "").replace(/"/g, "&quot;").replace(/<[^>]+>/g, "");
+  const set = d ? ` srcset="img/w/${k}-800.webp ${Math.min(800, d[0])}w, img/w/${k}-1400.webp ${Math.min(1400, d[0])}w" sizes="${sizes}" width="${d[0]}" height="${d[1]}"` : "";
+  return `<img src="img/${k}.jpg"${set} alt="${alt2}"${lazy ? ' loading="lazy"' : ' fetchpriority="high"'} decoding="async">`;
+};
 
 function menu(active) {
   const items = [["proyectos", UI[lang].projects], ["bio", UI[lang].bio], ["cv", UI[lang].cv], ["textos", UI[lang].texts], ["contacto", UI[lang].contact]];
@@ -786,7 +774,7 @@ function menu(active) {
 function carousel(items, opts = {}) {
   const id = "c" + Math.random().toString(36).slice(2, 7);
   const figs = items.map(([k, cap], i) => k.startsWith("yt:")
-    ? `<figure class="vid"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${k.slice(3)}" aria-label="${UI[lang].play}: ${T(cap) || ""}"><img class="yt-thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${k.slice(3)}/maxresdefault.jpg" onload="if(this.naturalWidth<200){this.onload=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'}" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'"><span>${T(cap) || ""}</span></button></div></figure>`
+    ? `<figure class="vid"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${k.slice(3)}" aria-label="${UI[lang].play}: ${T(cap) || ""}"><img class="yt-thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${k.slice(3)}/${YT}.jpg" onload="if(this.naturalWidth<200){this.onload=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'}" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${k.slice(3)}/hqdefault.jpg'"><span>${T(cap) || ""}</span></button></div></figure>`
     : `<figure${items[i][2] ? ` data-go="${items[i][2]}" class="go"` : ""}>${img(k, T(cap) || "", i > 1)}${opts.captions !== false && cap ? `<figcaption>${T(cap)}</figcaption>` : ""}</figure>`).join("");
   return `<div class="car${opts.hero ? " hero" : ""}" id="${id}" style="${opts.h ? `--h:${opts.h};` : ""}${opts.hm ? `--hm:${opts.hm};` : ""}">
     <div class="car-track" tabindex="0" aria-label="Imágenes">${figs}</div>
@@ -835,8 +823,8 @@ function pageProject(p) {
   menu("proyectos");
   const i = PROJECTS.indexOf(p), nx = PROJECTS[(i + 1) % PROJECTS.length];
   const quote = p.quote ? `<blockquote class="quote">${p.quote[lang][0]}<cite>${p.quote[lang][1]}</cite></blockquote>` : "";
-  const vids = p.videos ? `<div class="vids">${p.videos.map(([n0, id]) => { const n = T(n0); return `<div class="yt"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${id}" aria-label="${UI[lang].play}: ${n}"><img class="yt-thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<200){this.onload=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'}" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'"><span>${n}</span></button></div><small><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube</a></small></div>`; }).join("")}</div>` : "";
-  const loop = p.loop ? `<figure class="loop"><video poster="img/${p.loop.src}.jpg" autoplay muted loop playsinline preload="metadata"><source src="img/${p.loop.src}.mp4" type="video/mp4"><source src="img/${p.loop.src}.webm" type="video/webm"></video><figcaption>${p.loop.cap[lang]}</figcaption></figure>` : "";
+  const vids = p.videos ? `<div class="vids">${p.videos.map(([n0, id]) => { const n = T(n0); return `<div class="yt"><div class="yt-frame"><button type="button" class="yt-play" data-yt="${id}" aria-label="${UI[lang].play}: ${n}"><img class="yt-thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${id}/${YT}.jpg" onload="if(this.naturalWidth<200){this.onload=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'}" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'"><span>${n}</span></button></div><small><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube</a></small></div>`; }).join("")}</div>` : "";
+  const loop = p.loop ? `<figure class="loop"><video poster="img/w/${p.loop.src}-poster.webp" muted loop playsinline preload="none" width="640" height="360"><source src="img/${p.loop.src}.mp4" type="video/mp4"></video><figcaption>${p.loop.cap[lang]}</figcaption></figure>` : "";
   const rel = ESCRITOS.find(e => e.related === p.id);
   const relBox = rel ? `<div class="box"><h2>${UI[lang].text}</h2><a href="#${rel.id}">${rel.title[lang]}</a></div>` : "";
   const field = p.field ? `<div class="box"><h2>${UI[lang].fieldbook}</h2><ul class="field">${p.field[lang].map(([k, v]) => `<li><b>${k}</b><span>${v}</span></li>`).join("")}</ul></div>` : "";
@@ -859,7 +847,12 @@ function pageProject(p) {
     f.title = b.textContent.trim(); f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
     b.replaceWith(f);
   }));
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) view.querySelectorAll(".loop video").forEach(v => { v.removeAttribute("autoplay"); v.pause(); v.controls = true; });
+  // el vídeo en bucle solo se descarga y se pone en marcha cuando está a la vista; con poca conexión o sin animaciones, se queda quieto y con controles
+  const cn = navigator.connection || {}, quiet = matchMedia("(prefers-reduced-motion: reduce)").matches || cn.saveData || /2g/.test(cn.effectiveType || "");
+  view.querySelectorAll(".loop video").forEach(v => {
+    if (quiet) { v.controls = true; return; }
+    new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) v.play().catch(() => { v.controls = true; }); else v.pause(); }), { rootMargin: "200px" }).observe(v);
+  });
 }
 
 function list(sections) {
@@ -1200,13 +1193,27 @@ addEventListener("hashchange", route);
   function run() { if (slow) { clearInterval(slow); slow = 0; } if (!raf) raf = requestAnimationFrame(frame); }
   const inert = "input, textarea, select, video, iframe, .yt-play";   // donde no se moja: campos y vídeos
   let carry = null;                             // el agua que viaja con el dedo a la página siguiente
-  document.addEventListener("click", e => {
-    if (e.target.closest(inert)) return;
-    if (String(getSelection ? getSelection() : "").length) return;
+  /* Se moja al levantar el dedo (o el ratón) si ha sido un toque: sin arrastrar y sin pulsación larga.
+     Así cuenta también el toque que frena un desplazamiento, que el navegador no convierte en "clic",
+     y no depende de que haya texto seleccionado en la página. */
+  let pd = null, tapAt = 0, downAt = 0;
+  function tap(e) {
+    if (e.target.closest(inert) || e.target.closest(".cita")) return;   // ni en vídeos ni dentro de la ficha de la cita
     askMotion();
     if (snails.length) pokeSnail(e.pageX, e.pageY);
     if (bugs.length) poke(e.pageX, e.pageY);
     wet(e.pageX, e.pageY);                      // se queda en la página que dejamos
+    tapAt = performance.now();
+  }
+  document.addEventListener("pointerdown", e => { downAt = performance.now(); pd = e.isPrimary && e.button === 0 ? { x: e.clientX, y: e.clientY, t: performance.now() } : null; }, { passive: true });
+  document.addEventListener("pointercancel", () => { pd = null; }, { passive: true });
+  document.addEventListener("pointerup", e => {
+    const p = pd; pd = null;
+    if (!p || !e.isPrimary || Math.hypot(e.clientX - p.x, e.clientY - p.y) > 10 || performance.now() - p.t > 600) return;
+    tap(e);
+  }, { passive: true });
+  document.addEventListener("click", e => {
+    if (e.detail && performance.now() - downAt > 1500) tap(e);   // solo si el navegador no ha mandado el toque (muy raro)
     const a = e.target.closest("a[href^='#'], .car figure.go");
     const to = a && (a.dataset.go ? "#" + a.dataset.go : a.getAttribute("href"));
     if (a && to !== (location.hash || "#") && !e.metaKey && !e.ctrlKey && !e.shiftKey) carry = { x: e.clientX, y: e.clientY };
