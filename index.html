@@ -1520,7 +1520,7 @@ addEventListener("hashchange", route);
   }
   function drawSnails(oy) {
     // la baba: un rastro mate del tono de la humedad, más oscuro mientras está fresco y apenas una huella al secarse; sin brillo
-    bx.save(); bx.lineCap = bx.lineJoin = "round"; bx.lineWidth = 1.8 * BS;
+    bx.save(); bx.lineCap = bx.lineJoin = "round";
     for (const sn of snails) {
       const tr = sn.trail, n = tr.length; if (n < 2) continue;
       for (const fresh of [false, true]) {
@@ -1532,7 +1532,9 @@ addEventListener("hashchange", route);
           if (!open) { bx.moveTo(p.x, p.y - oy); open = true; }
           bx.lineTo(q.x, y);
         }
-        bx.strokeStyle = fresh ? "rgba(96, 86, 58, 0.24)" : "rgba(120, 110, 84, 0.11)"; bx.stroke();
+        // tres pasadas cada vez más estrechas: el borde se difumina y el centro apenas se marca
+        const a = fresh ? 0.055 : 0.025;
+        for (const [w, k] of [[4.6, 0.6], [3, 0.8], [1.6, 1]]) { bx.lineWidth = w * BS; bx.strokeStyle = `rgba(110, 100, 74, ${a * k})`; bx.stroke(); }
       }
     }
     bx.restore();
