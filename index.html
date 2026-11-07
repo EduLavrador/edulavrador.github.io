@@ -1422,6 +1422,14 @@ addEventListener("hashchange", route);
         if (sn.x < mg || sn.x > GW * C - mg || sn.y < mg || sn.y > GH * C - mg) turnTo(sn, Math.atan2(GH * C / 2 - sn.y, GW * C / 2 - sn.x), dt * 1.2);
         const nx = sn.x + Math.cos(sn.a) * sn.v * dt, ny = sn.y + Math.sin(sn.a) * sn.v * dt;
         sn.x = nx; sn.y = ny;                   // pasan por encima del texto sin problema
+        // si el caracol viene hacia donde hay cochinillas, se apartan sin prisa a un lado (ellas sí pueden pasarle por encima)
+        const fx = sn.x + Math.cos(sn.a) * 8 * BS, fy = sn.y + Math.sin(sn.a) * 8 * BS;
+        for (const b of bugs) {
+          if (b.st !== 1 || Math.hypot(b.x - fx, b.y - fy) > 13 * BS) continue;   // solo las que están paradas
+          const side = (-(b.x - sn.x) * Math.sin(sn.a) + (b.y - sn.y) * Math.cos(sn.a)) >= 0 ? 1 : -1, d = (16 + Math.random() * 10) * BS;
+          b.tx = b.x - Math.sin(sn.a) * side * d; b.ty = b.y + Math.cos(sn.a) * side * d; b.st = 0;
+          if (!bugRaf) bugRaf = requestAnimationFrame(bugFrame);
+        }
         if (onWet && i >= 0) {                  // pastan: el moho de alrededor se aclara poco a poco
           const cx = i % GW, cy = i / GW | 0;
           for (let yy = -2; yy <= 2; yy++) for (let xx = -2; xx <= 2; xx++) { const j = (cy + yy) * GW + cx + xx; if (j >= 0 && j < g.length && g[j] > 0) { g[j] = Math.max(0, g[j] - dt * 0.03); act(cx + xx, cy + yy); } }
