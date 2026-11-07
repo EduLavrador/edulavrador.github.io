@@ -1435,11 +1435,14 @@ addEventListener("hashchange", route);
         for (const o of snails) { if (o !== sn && o.st !== "cae" && Math.hypot(o.x - nx, o.y - ny) < R && Math.hypot(o.x - nx, o.y - ny) < Math.hypot(o.x - sn.x, o.y - sn.y)) { blocked = true; break; } }
         if (!blocked) { sn.x = nx; sn.y = ny; } // pasan por encima del texto sin problema, pero no por encima de otra concha
         // si el caracol viene hacia donde hay cochinillas, se apartan sin prisa a un lado (ellas sí pueden pasarle por encima)
-        const fx = sn.x + Math.cos(sn.a) * 8 * BS, fy = sn.y + Math.sin(sn.a) * 8 * BS;
+        const ca = Math.cos(sn.a), se = Math.sin(sn.a), now = performance.now() / 1000;
         for (const b of bugs) {
-          if (b.st !== 1 || Math.hypot(b.x - fx, b.y - fy) > 13 * BS) continue;   // solo las que están paradas
-          const side = (-(b.x - sn.x) * Math.sin(sn.a) + (b.y - sn.y) * Math.cos(sn.a)) >= 0 ? 1 : -1, d = (16 + Math.random() * 10) * BS;
-          b.tx = b.x - Math.sin(sn.a) * side * d; b.ty = b.y + Math.cos(sn.a) * side * d; b.st = 0;
+          if (b.st === 2 || (b.dg && now - b.dg < 1.2)) continue;
+          const rx = b.x - sn.x, ry = b.y - sn.y, al = rx * ca + ry * se, la = -rx * se + ry * ca;   // delante / a un lado del caracol
+          if (al < -6 * BS || al > 30 * BS || Math.abs(la) > 11 * BS) continue;                       // fuera de su camino
+          if (b.st === 0 && Math.abs(-(b.tx - sn.x) * se + (b.ty - sn.y) * ca) > 11 * BS) continue;   // ya va saliendo del camino
+          const side = la >= 0 ? 1 : -1, off = (15 + Math.random() * 8) * BS;
+          b.tx = sn.x + ca * al - se * side * off; b.ty = sn.y + se * al + ca * side * off; b.st = 0; b.dg = now;
           if (!bugRaf) bugRaf = requestAnimationFrame(bugFrame);
         }
         if (onWet && i >= 0) {                  // pastan: el moho de alrededor se aclara poco a poco
