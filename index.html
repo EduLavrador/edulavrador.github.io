@@ -1026,7 +1026,6 @@ addEventListener("hashchange", route);
   function askMotion() {                                                       // iPhone: pide permiso al primer toque
     if (asked) return; asked = true;
     if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === "function") DeviceMotionEvent.requestPermission().catch(() => {});
-    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().catch(() => {});
   }
   function step() {
     NB = [-1, 1, -GW, GW, -GW - 1, -GW + 1, GW - 1, GW + 1];
@@ -1386,7 +1385,7 @@ addEventListener("hashchange", route);
      si ya estaban escondidos, se sueltan y caen hacia donde está el suelo. */
   const sspr = new Image(); sspr.src = "img/limnea.webp"; sspr.onload = () => drawBugs();
   const SNAIL_T = 300, SV = 6 * BS, SG = 8;   // llegan a los 5 min; velocidad (px/s); rejilla para encontrar rastros
-  let snails = [], sgrid = new Map(), snailAcc = 0, LX = 0.3, LY = -0.4, lightAt = 0;
+  let snails = [], sgrid = new Map(), snailAcc = 0;
   function txtAt(x, y) { const i = cell(x, y); return i >= 0 && txt[i] === 1; }
   function gkey(x, y) { return (x / SG | 0) + "," + (y / SG | 0); }
   function regTrail(sn) { for (const q of sn.trail) { const k = gkey(q.x, q.y); (sgrid.get(k) || sgrid.set(k, []).get(k)).push(q); } }
@@ -1489,7 +1488,7 @@ addEventListener("hashchange", route);
         moving = true; sn.h = Math.max(0, sn.h - dt / 1.6);
         if (sn.t <= 0) { const i = cell(sn.x, sn.y), onWet = i >= 0 && (m[i] > 0.06 || g[i] > 0.15); sn.st = "anda"; sn.t = onWet ? 4 + Math.random() * 8 : 12 + Math.random() * 25; sn.k = (Math.random() - 0.5) * 0.6; }
       }
-      // la baba: un hilo de humedad de verdad en la pared, y su huella para el brillo
+      // la baba: un hilo de humedad de verdad en la pared, y su rastro dibujado
       const L = sn.trail[sn.trail.length - 1];
       if (sn.st === "anda" && (!L || Math.hypot(L.x - sn.x, L.y - sn.y) > 1.5)) {
         const q = { x: sn.x, y: sn.y, a: L ? Math.atan2(sn.y - L.y, sn.x - L.x) : sn.a, t: T, o: sn.id };
@@ -1520,21 +1519,20 @@ addEventListener("hashchange", route);
     return hit;
   }
   function drawSnails(oy) {
-    // el brillo de la baba seca: solo los tramos secos que miran hacia la luz, un poco tornasolados
-    const mag = Math.min(1, Math.hypot(LX, LY)), lx = LX / (mag || 1), ly = LY / (mag || 1);
-    bx.save(); bx.lineCap = "round";
+    // la baba: un rastro mate del tono de la humedad, más oscuro mientras está fresco y apenas una huella al secarse; sin brillo
+    bx.save(); bx.lineCap = bx.lineJoin = "round"; bx.lineWidth = 1.8 * BS;
     for (const sn of snails) {
       const tr = sn.trail, n = tr.length; if (n < 2) continue;
-      const band = 0.5 + 0.55 * LX, spread = 0.09 + 0.06 * (1 - mag);
-      for (let k = 1; k < n; k++) {
-        const p = tr[k - 1], q = tr[k], y = q.y - oy; if (y < -10 || y > bH + 10) continue;
-        const i = cell(q.x, q.y); if (i < 0 || m[i] > 0.01 || T - q.t < 40) continue;   // húmeda todavía: no brilla
-        let dx = q.x - p.x, dy = q.y - p.y; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
-        const face = Math.abs(-dy * lx + dx * ly), s = k / n, along = Math.exp(-(((s - band) / spread) ** 2));
-        const I = along * face ** 3 * mag * (0.75 + 0.25 * Math.sin(k * 1.7) * Math.sin(k * 0.37));
-        if (I < 0.03) continue;
-        bx.strokeStyle = `hsla(${200 + 140 * (s - band) / spread + 40 * LY | 0}, 40%, 72%, ${Math.min(0.45, I * 0.45)})`;
-        bx.lineWidth = 2.6 * BS; bx.beginPath(); bx.moveTo(p.x, p.y - oy); bx.lineTo(q.x, y); bx.stroke();
+      for (const fresh of [false, true]) {
+        bx.beginPath(); let open = false;
+        for (let k = 1; k < n; k++) {
+          const p = tr[k - 1], q = tr[k], y = q.y - oy;
+          const f = T - q.t < 90;                 // fresca durante minuto y medio
+          if (f !== fresh || y < -10 || y > bH + 10 || Math.hypot(q.x - p.x, q.y - p.y) > 12) { open = false; continue; }
+          if (!open) { bx.moveTo(p.x, p.y - oy); open = true; }
+          bx.lineTo(q.x, y);
+        }
+        bx.strokeStyle = fresh ? "rgba(96, 86, 58, 0.24)" : "rgba(120, 110, 84, 0.11)"; bx.stroke();
       }
     }
     bx.restore();
@@ -1548,10 +1546,6 @@ addEventListener("hashchange", route);
       bx.restore();
     }
   }
-  // la luz para el brillo: en el móvil, la inclinación; en el ordenador, el ratón
-  function relight() { if (snails.length && !bugRaf && performance.now() - lightAt > 40) { lightAt = performance.now(); drawBugs(); } }
-  addEventListener("deviceorientation", e => { if (e.gamma == null) return; LX = Math.max(-1, Math.min(1, e.gamma / 35)); LY = Math.max(-1, Math.min(1, (e.beta - 40) / 35)); relight(); });
-  addEventListener("mousemove", e => { LX = (e.clientX / innerWidth - 0.5) * 2; LY = (e.clientY / innerHeight - 0.5) * 2; relight(); }, { passive: true });
   function bugFrame(t) {
     const dt = Math.min(0.1, (t - (bugLast || t)) / 1000); bugLast = t;
     const moving = moveBugs(dt) | moveSnails(dt, raf || slow ? lastBusy : false); drawBugs();
