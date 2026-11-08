@@ -1533,8 +1533,8 @@ addEventListener("hashchange", route);
           bx.lineTo(q.x, y);
         }
         // tres pasadas cada vez más estrechas: el borde se difumina y el centro apenas se marca
-        const a = fresh ? 0.09 : 0.05;           // el tono de la mancha de humedad, algo más oscuro
-        for (const [w, k] of [[4.6, 0.6], [3, 0.8], [1.6, 1]]) { bx.lineWidth = w * BS; bx.strokeStyle = `rgba(100, 86, 46, ${a * k})`; bx.stroke(); }
+        const a = fresh ? 0.075 : 0.035;         // el mismo color que la mancha de humedad recién hecha; seca, la mitad
+        for (const [w, k] of [[7, 0.55], [4.6, 0.8], [2.4, 1]]) { bx.lineWidth = w * BS; bx.strokeStyle = `rgba(122, 106, 60, ${a * k})`; bx.stroke(); }
       }
     }
     bx.restore();
